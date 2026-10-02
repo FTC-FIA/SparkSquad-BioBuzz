@@ -11,8 +11,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 /**
  * Basic TeleOp with Robot Relative Mecanum Drive
  */
-@TeleOp(name = "Mecanum Limelight Tester", group = "BioBuzz")
-public class MecanumLimelightTester extends LinearOpMode {
+@TeleOp(name = "Limelight Tester", group = "BioBuzz")
+public class LimelightTester extends LinearOpMode {
 
     DcMotor frontLeft;
     DcMotor frontRight;
