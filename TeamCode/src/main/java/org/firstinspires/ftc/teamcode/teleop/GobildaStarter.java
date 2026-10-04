@@ -99,13 +99,12 @@ public class GobildaStarter extends OpMode {
         frontLeft = hardwareMap.get(DcMotor.class, "front_left");
         backRight = hardwareMap.get(DcMotor.class, "back_right");
         backLeft = hardwareMap.get(DcMotor.class, "back_left");
-        intake = hardwareMap.get(DcMotor.class, "intake");
+        intake = hardwareMap.get(DcMotor.class, "intake_motor");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
-        windmillServo = hardwareMap.get(CRServo.class, "windmill");
+        windmillServo = hardwareMap.get(CRServo.class, "windmill_servo");
         leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
         rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
-        // TODO: figure out how to do this once mecanum
         frontRight.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
         launcher.setDirection(DcMotor.Direction.REVERSE);
@@ -160,15 +159,17 @@ public class GobildaStarter extends OpMode {
     @Override
     public void loop() {
 
-        // TODO: change this to mecanum
-        arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
+        drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
-        // TODO: simplify intake control?
         intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
 
-        // TODO: consider moving gamepad detection into main loop?
         launch();
 
+        double WINDMILL_POWER = 0.5;
+
+        if (gamepad1.a) {
+            windmillServo.setPower(WINDMILL_POWER);
+        }
         intake.setPower(intakePower);
         leftIntakeServo.setPower(intakePower);
         rightIntakeServo.setPower(intakePower);
@@ -186,19 +187,22 @@ public class GobildaStarter extends OpMode {
     public void stop() {
     }
 
-    void arcadeDrive(double forward, double rotate) {
-        leftPower = forward + rotate;
-        rightPower = forward - rotate;
 
-        /*
-         * Send calculated power to motors
-         */
-        frontLeft.setPower(leftPower);
-        frontRight.setPower(rightPower);
-        backLeft.setPower(leftPower);
-        backRight.setPower(rightPower);
+    private void drive(double forward, double right, double turn) {
+        double fl = forward + right - turn;
+        double bl = forward - right - turn;
+        double fr = forward - right + turn;
+        double br = forward + right + turn;
+
+        // Scale all four down together if any exceeds 1, so the direction is kept, just slower.
+        double max = Math.max(1.0, Math.max(Math.abs(fl), Math.max(Math.abs(bl),
+                Math.max(Math.abs(fr), Math.abs(br)))));
+
+        frontLeft.setPower(fl / max);
+        backLeft.setPower(bl / max);
+        frontRight.setPower(fr / max);
+        backRight.setPower(br / max);
     }
-
     void launch() {
         /*
          * Calling gamepad1.right_bumper returns a boolean which will be true if the bumper is
