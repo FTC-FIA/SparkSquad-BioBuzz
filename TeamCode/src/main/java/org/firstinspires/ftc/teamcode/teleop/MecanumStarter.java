@@ -1,24 +1,3 @@
-/*   MIT License
- *   Copyright (c) [2026] [Base 10 Assets, LLC]
- *
- *   Permission is hereby granted, free of charge, to any person obtaining a copy
- *   of this software and associated documentation files (the "Software"), to deal
- *   in the Software without restriction, including without limitation the rights
- *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *   copies of the Software, and to permit persons to whom the Software is
- *   furnished to do so, subject to the following conditions:
-
- *   The above copyright notice and this permission notice shall be included in all
- *   copies or substantial portions of the Software.
-
- *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *   SOFTWARE.
- */
 
 
 package org.firstinspires.ftc.teamcode.teleop;
@@ -34,28 +13,16 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 
-/*
- * This file includes a teleop (driver-controlled) file for the goBILDA® StarterBot for the
- * 2026-2027 FIRST® Tech Challenge. It leverages a differential/Skid-Steer system for robot mobility,
- * one motor driving an intake roller, two servos which pull elements out of corners, and a high-speed
- * launcher motor.
- *
- * Likely the most niche concept we'll use in this example is closed-loop motor velocity control.
- * This control method reads the current speed as reported by the motor's encoder and applies a varying
- * amount of power to reach, and then hold a target velocity. The FTC SDK calls this control method
- * "RUN_USING_ENCODER". This contrasts to the default "RUN_WITHOUT_ENCODER" where you control the power
- * applied to the motor directly.
- * Since the dynamics of a launcher wheel system varies greatly from those of most other FTC mechanisms,
- * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
- */
 
-@TeleOp(name = "Gobilda StarterBot", group = "StarterBot")
+@TeleOp(name = "Mecanum StarterBot", group = "StarterBot")
 //@Disabled
-public class GobildaStarter extends OpMode {
+public class MecanumStarter extends OpMode {
 
     // Declare OpMode members.
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+    private DcMotor backRight = null;
+    private DcMotor frontRight = null;
+    private DcMotor backLeft = null;
+    private DcMotor frontLeft = null;
     private DcMotorEx launcher = null;
     private DcMotor intake = null;
     private CRServo leftIntakeServo = null;
@@ -92,26 +59,33 @@ public class GobildaStarter extends OpMode {
     @Override
     public void init() {
 
-        // WARNING: This does not match our Mecanum bot!!!
-        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        backLeft = hardwareMap.get(DcMotor.class, "back_left");
+        frontLeft = hardwareMap.get(DcMotor.class, "front_left");
+        backRight = hardwareMap.get(DcMotor.class, "back_right");
+        frontRight = hardwareMap.get(DcMotor.class, "front_right");
+
         intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
-        windmillServo = hardwareMap.get(CRServo.class, "windmill");
+        windmillServo = hardwareMap.get(CRServo.class, "windmill_servo");
         leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
         rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
         // TODO: figure out how to do this once mecanum
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.FORWARD);
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
 
-        leftDrive.setZeroPowerBehavior(BRAKE);
-        rightDrive.setZeroPowerBehavior(BRAKE);
+        backLeft.setZeroPowerBehavior(BRAKE);
+        frontLeft.setZeroPowerBehavior(BRAKE);
+        backRight.setZeroPowerBehavior(BRAKE);
+        frontRight.setZeroPowerBehavior(BRAKE);
         intake.setZeroPowerBehavior(BRAKE);
 
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
+        launcher.setPIDFCoefficients(
+                DcMotor.RunMode.RUN_USING_ENCODER,
+                new PIDFCoefficients(40, 0, 0, 12.5)
+        );
 
         /*
          * set Feeders to an initial value to initialize the servo controller
@@ -153,8 +127,7 @@ public class GobildaStarter extends OpMode {
     @Override
     public void loop() {
 
-        // TODO: change this to mecanum
-        arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
+        drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
         // TODO: simplify intake control?
         intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
@@ -166,10 +139,6 @@ public class GobildaStarter extends OpMode {
         leftIntakeServo.setPower(intakePower);
         rightIntakeServo.setPower(intakePower);
 
-        // TODO:
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addLine();
-
     }
 
     /*
@@ -179,26 +148,31 @@ public class GobildaStarter extends OpMode {
     public void stop() {
     }
 
-    void arcadeDrive(double forward, double rotate) {
-        leftPower = forward + rotate;
-        rightPower = forward - rotate;
+    /**
+     * Mecanum mixing: turn "go this way and spin this much" into four motor powers.
+     *
+     * @param forward +1 is straight out the front of the robot
+     * @param right   +1 is sideways to the robot's right -- what mecanum wheels are for
+     * @param turn    +1 is counterclockwise, the direction heading increases
+     */
+    private void drive(double forward, double right, double turn) {
+        double fl = forward + right - turn;
+        double bl = forward - right - turn;
+        double fr = forward - right + turn;
+        double br = forward + right + turn;
 
-        /*
-         * Send calculated power to motors
-         */
-        leftDrive.setPower(leftPower);
-        rightDrive.setPower(rightPower);
+        // Scale all four down together if any exceeds 1, so the direction is kept, just slower.
+        double max = Math.max(1.0, Math.max(Math.abs(fl), Math.max(Math.abs(bl),
+                Math.max(Math.abs(fr), Math.abs(br)))));
+
+        frontLeft.setPower(fl / max);
+        backLeft.setPower(bl / max);
+        frontRight.setPower(fr / max);
+        backRight.setPower(br / max);
     }
 
     void launch() {
-        /*
-         * Calling gamepad1.right_bumper returns a boolean which will be true if the bumper is
-         * held down, and false if it is not. Notably, this will continue to be true for every
-         * cycle of our code that the driver holds down that bumper.
-         * The first step of our launch() function is checking to see if the user is currently
-         * holding down the right gamepad. If they are, then we want to start spinning up the launcher.
-         * Otherwise, we start spinning the launcher down.
-         */
+
         if (gamepad1.right_bumper) {
             launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
         } else {

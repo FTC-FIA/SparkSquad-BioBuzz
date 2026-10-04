@@ -94,13 +94,13 @@ public class MotorTest extends OpMode {
     @Override
     public void init() {
 
-        frontRight = hardwareMap.get(DcMotor.class, "front_Right");
-        frontLeft = hardwareMap.get(DcMotor.class, "front_Left");
-        backLeft = hardwareMap.get(DcMotor.class, "back_Left");
-        backRight = hardwareMap.get(DcMotor.class, "back_Right");
-        intake = hardwareMap.get(DcMotor.class, "intake");
+        frontRight = hardwareMap.get(DcMotor.class, "front_right");
+        frontLeft = hardwareMap.get(DcMotor.class, "front_left");
+        backLeft = hardwareMap.get(DcMotor.class, "back_left");
+        backRight = hardwareMap.get(DcMotor.class, "back_right");
+        intake = hardwareMap.get(DcMotor.class, "intake_motor");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
-        windmillServo = hardwareMap.get(CRServo.class, "windmill");
+        windmillServo = hardwareMap.get(CRServo.class, "windmill_servo");
         leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
         rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
@@ -111,8 +111,9 @@ public class MotorTest extends OpMode {
          * Note: The settings here assume direct drive on left and right wheels. Gear
          * Reduction or 90 Deg drives may require direction flips
          */
-        //leftDrive.setDirection(DcMotor.Direction.FORWARD);
-        // rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        launcher.setDirection(DcMotor.Direction.REVERSE);
 
         /*
          * Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to
@@ -147,8 +148,8 @@ public class MotorTest extends OpMode {
          * Much like our drivetrain motors, we set the right intake servo to reverse so that both
          * servos work to pull elements into the intake.
          */
-        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
-        windmillServo.setDirection(DcMotorSimple.Direction.REVERSE);
+//        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
+//        windmillServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
         /*
          * Tell the driver that initialization is complete.
@@ -177,21 +178,39 @@ public class MotorTest extends OpMode {
     public void loop() {
         if (gamepad1.dpad_up) {
             frontRight.setPower(0.5);
+        } else {
+            frontRight.setPower(0.0);
         }
+
         if (gamepad1.dpad_down) {
             backRight.setPower(0.5);
+        } else {
+            backRight.setPower(0.0);
         }
+
         if (gamepad1.dpad_right) {
             frontLeft.setPower(0.5);
+        } else {
+            frontLeft.setPower(0.0);
         }
-        if (gamepad1.dpad_right) {
+
+
+        if (gamepad1.dpad_left) {
             backLeft.setPower(0.5);
+        } else {
+            backLeft.setPower(0.0);
         }
+
         if (gamepad1.a) {
             intake.setPower(0.5);
+        } else {
+            intake.setPower(0.0);
         }
+
         if (gamepad1.b) {
             launcher.setPower(0.5);
+        } else {
+            launcher.setPower(0.0);
         }
     }
 }
