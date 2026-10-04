@@ -54,8 +54,10 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 public class GobildaStarter extends OpMode {
 
     // Declare OpMode members.
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+    private DcMotor frontRight = null;
+    private DcMotor frontLeft = null;
+    private DcMotor backRight = null;
+    private DcMotor backLeft = null;
     private DcMotorEx launcher = null;
     private DcMotor intake = null;
     private CRServo leftIntakeServo = null;
@@ -93,8 +95,10 @@ public class GobildaStarter extends OpMode {
     public void init() {
 
         // WARNING: This does not match our Mecanum bot!!!
-        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        frontRight = hardwareMap.get(DcMotor.class, "front_right");
+        frontLeft = hardwareMap.get(DcMotor.class, "front_left");
+        backRight = hardwareMap.get(DcMotor.class, "back_right");
+        backLeft = hardwareMap.get(DcMotor.class, "back_left");
         intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         windmillServo = hardwareMap.get(CRServo.class, "windmill");
@@ -102,11 +106,14 @@ public class GobildaStarter extends OpMode {
         rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
         // TODO: figure out how to do this once mecanum
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        launcher.setDirection(DcMotor.Direction.REVERSE);
 
-        leftDrive.setZeroPowerBehavior(BRAKE);
-        rightDrive.setZeroPowerBehavior(BRAKE);
+        frontRight.setZeroPowerBehavior(BRAKE);
+        frontLeft.setZeroPowerBehavior(BRAKE);
+        backRight.setZeroPowerBehavior(BRAKE);
+        backLeft.setZeroPowerBehavior(BRAKE);
         intake.setZeroPowerBehavior(BRAKE);
 
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -186,8 +193,10 @@ public class GobildaStarter extends OpMode {
         /*
          * Send calculated power to motors
          */
-        leftDrive.setPower(leftPower);
-        rightDrive.setPower(rightPower);
+        frontLeft.setPower(leftPower);
+        frontRight.setPower(rightPower);
+        backLeft.setPower(leftPower);
+        backRight.setPower(rightPower);
     }
 
     void launch() {
