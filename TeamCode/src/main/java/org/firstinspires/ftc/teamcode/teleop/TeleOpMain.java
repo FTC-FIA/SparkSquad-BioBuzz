@@ -87,8 +87,8 @@ public class TeleOpMain extends OpMode {
         /////////////////////////
         double forward = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
-        double rotate = gamepad1.right_stick_x;
-        mecanumDrive(forward, strafe, rotate);
+        double turn = gamepad1.right_stick_x;
+        mecanumDrive(forward, strafe, turn);
 
         /////////////////////////
         // handle intake
@@ -149,11 +149,11 @@ public class TeleOpMain extends OpMode {
     public void stop() {
     }
 
-    private void mecanumDrive(double forward, double right, double turn) {
-        double fl = forward + right - turn;
-        double bl = forward - right - turn;
-        double fr = forward - right + turn;
-        double br = forward + right + turn;
+    private void mecanumDrive(double forward, double strafe, double turn) {
+        double fl = forward + strafe - turn;
+        double bl = forward - strafe - turn;
+        double fr = forward - strafe + turn;
+        double br = forward + strafe + turn;
 
         // Scale all four down together if any exceeds 1, so the direction is kept, just slower.
         double max = Math.max(1.0, Math.max(Math.abs(fl), Math.max(Math.abs(bl),
