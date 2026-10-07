@@ -51,7 +51,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 @TeleOp(name = "Gobilda StarterBot", group = "StarterBot")
 //@Disabled
-public class GobildaStarter extends OpMode {
+public class MotorTest extends OpMode {
 
     // Declare OpMode members.
     private DcMotor frontRight = null;
@@ -94,27 +94,45 @@ public class GobildaStarter extends OpMode {
     @Override
     public void init() {
 
-        // WARNING: This does not match our Mecanum bot!!!
         frontRight = hardwareMap.get(DcMotor.class, "front_right");
         frontLeft = hardwareMap.get(DcMotor.class, "front_left");
-        backRight = hardwareMap.get(DcMotor.class, "back_right");
         backLeft = hardwareMap.get(DcMotor.class, "back_left");
+        backRight = hardwareMap.get(DcMotor.class, "back_right");
         intake = hardwareMap.get(DcMotor.class, "intake_motor");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         windmillServo = hardwareMap.get(CRServo.class, "windmill_servo");
         leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
         rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
+        /*
+         * To drive forward, most robots need the motor on one side to be reversed,
+         * because the axles point in opposite directions. Pushing the left stick forward
+         * MUST make robot go forward. So adjust these two lines based on your first test drive.
+         * Note: The settings here assume direct drive on left and right wheels. Gear
+         * Reduction or 90 Deg drives may require direction flips
+         */
         frontRight.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
         launcher.setDirection(DcMotor.Direction.REVERSE);
 
-        frontRight.setZeroPowerBehavior(BRAKE);
+        /*
+         * Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to
+         * slow down much faster when it is coasting. This creates a much more controllable
+         * drivetrain. As the robot stops much quicker.
+         */
         frontLeft.setZeroPowerBehavior(BRAKE);
-        backRight.setZeroPowerBehavior(BRAKE);
+        frontRight.setZeroPowerBehavior(BRAKE);
         backLeft.setZeroPowerBehavior(BRAKE);
+        backRight.setZeroPowerBehavior(BRAKE);
         intake.setZeroPowerBehavior(BRAKE);
 
+        /*
+         * Here we set our launcher to the RUN_USING_ENCODER runmode.
+         * If you notice that you have no control over the velocity of the motor, it just jumps
+         * right to a number much higher than your set point, make sure that your encoders are plugged
+         * into the port right beside the motor itself. And that the motors polarity is consistent
+         * through any wiring.
+         */
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
@@ -130,8 +148,8 @@ public class GobildaStarter extends OpMode {
          * Much like our drivetrain motors, we set the right intake servo to reverse so that both
          * servos work to pull elements into the intake.
          */
-        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
-        windmillServo.setDirection(DcMotorSimple.Direction.REVERSE);
+//        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
+//        windmillServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
         /*
          * Tell the driver that initialization is complete.
@@ -158,80 +176,41 @@ public class GobildaStarter extends OpMode {
      */
     @Override
     public void loop() {
+        if (gamepad1.dpad_up) {
+            frontRight.setPower(0.5);
+        } else {
+            frontRight.setPower(0.0);
+        }
 
-        drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        if (gamepad1.dpad_down) {
+            backRight.setPower(0.5);
+        } else {
+            backRight.setPower(0.0);
+        }
 
-        intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
+        if (gamepad1.dpad_right) {
+            frontLeft.setPower(0.5);
+        } else {
+            frontLeft.setPower(0.0);
+        }
 
-        launch();
 
-        double WINDMILL_POWER = 0.5;
+        if (gamepad1.dpad_left) {
+            backLeft.setPower(0.5);
+        } else {
+            backLeft.setPower(0.0);
+        }
 
         if (gamepad1.a) {
-            windmillServo.setPower(WINDMILL_POWER);
-        }
-        intake.setPower(intakePower);
-        leftIntakeServo.setPower(intakePower);
-        rightIntakeServo.setPower(intakePower);
-
-        // TODO:
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addLine();
-
-    }
-
-    /*
-     * Code to run ONCE after the driver hits STOP
-     */
-    @Override
-    public void stop() {
-    }
-
-
-    private void drive(double forward, double right, double turn) {
-        double fl = forward + right - turn;
-        double bl = forward - right - turn;
-        double fr = forward - right + turn;
-        double br = forward + right + turn;
-
-        // Scale all four down together if any exceeds 1, so the direction is kept, just slower.
-        double max = Math.max(1.0, Math.max(Math.abs(fl), Math.max(Math.abs(bl),
-                Math.max(Math.abs(fr), Math.abs(br)))));
-
-        frontLeft.setPower(fl / max);
-        backLeft.setPower(bl / max);
-        frontRight.setPower(fr / max);
-        backRight.setPower(br / max);
-    }
-    void launch() {
-        /*
-         * Calling gamepad1.right_bumper returns a boolean which will be true if the bumper is
-         * held down, and false if it is not. Notably, this will continue to be true for every
-         * cycle of our code that the driver holds down that bumper.
-         * The first step of our launch() function is checking to see if the user is currently
-         * holding down the right gamepad. If they are, then we want to start spinning up the launcher.
-         * Otherwise, we start spinning the launcher down.
-         */
-        if (gamepad1.right_bumper) {
-            launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+            intake.setPower(0.5);
         } else {
-            launcher.setVelocity(0);
+            intake.setPower(0.0);
         }
 
-        /*
-         * Here we ask if the driver is currently pressing the right bumper, AND the launcher is
-         * spinning fast enough to make a successful shot. If it is, then we will turn on the
-         * windmill servo to start feeding the elements into the launcher motor. We also
-         * add some power to the intake power. This can sometimes help dislodge stuck elements from
-         * inside the hopper.
-         */
-        if (gamepad1.right_bumper && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
-            windmillServo.setPower(1);
-            intakePower += 0.5;
+        if (gamepad1.b) {
+            launcher.setPower(0.5);
         } else {
-            windmillServo.setPower(0);
+            launcher.setPower(0.0);
         }
     }
-
-
 }
