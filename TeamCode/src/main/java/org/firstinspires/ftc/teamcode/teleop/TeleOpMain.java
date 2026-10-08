@@ -28,8 +28,8 @@ public class TeleOpMain extends OpMode {
     private final int MIN_LAUNCHER_TARGET_VELOCITY = 200;
     private final int MAX_LAUNCHER_TARGET_VELOCITY = 2000;
 
-    private final double INTAKE_POWER = 0.8;
-    private final double WINDMILL_POWER = 0.5;
+    private final double INTAKE_POWER = 1.0;
+    private final double WINDMILL_POWER = 1.0;
 
     private boolean intakeOn = false;
     private double launcherTargetVelocity = INITIAL_LAUNCHER_TARGET_VELOCITY;
@@ -51,7 +51,6 @@ public class TeleOpMain extends OpMode {
         // config hardware components
         frontRight.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
-        launcher.setDirection(DcMotor.Direction.REVERSE);
         rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
         windmillServo.setDirection(DcMotorSimple.Direction.REVERSE);
         frontRight.setZeroPowerBehavior(BRAKE);
@@ -107,13 +106,13 @@ public class TeleOpMain extends OpMode {
         /////////////////////////
         // handle launcher - runs continuously
         /////////////////////////
-        if (gamepad1.dpad_up) {
+        if (gamepad1.dpadUpWasPressed()) {
             launcherTargetVelocity += 100;
             if (launcherTargetVelocity > MAX_LAUNCHER_TARGET_VELOCITY) {
                 launcherTargetVelocity = MAX_LAUNCHER_TARGET_VELOCITY;
             }
         }
-        if (gamepad1.dpad_down) {
+        if (gamepad1.dpadDownWasPressed()) {
             launcherTargetVelocity -= 100;
             if (launcherTargetVelocity < MIN_LAUNCHER_TARGET_VELOCITY) {
                 launcherTargetVelocity = MIN_LAUNCHER_TARGET_VELOCITY;
@@ -124,20 +123,24 @@ public class TeleOpMain extends OpMode {
         /////////////////////////
         // handle windmill
         /////////////////////////
-        double WINDMILL_POWER = 0.5;
         if (gamepad1.right_bumper) {
             windmillServo.setPower(WINDMILL_POWER);
+        } else {
+            windmillServo.setPower(0);
         }
 
         /////////////////////////
         // update telemetry
         /////////////////////////
-        if (gamepad1.y) {
+        if (gamepad1.start) {
             helpMenu();
         } else {
             double launcherVelocity = launcher.getVelocity();
             telemetry.addData("Launcher - Target Velocity", launcherTargetVelocity);
             telemetry.addData("Launcher - Current Velocity", launcherVelocity);
+            telemetry.addData("Windmill Power", windmillServo.getPower());
+            telemetry.addData("Left Intake Servo", leftIntakeServo.getPower());
+            telemetry.addData("Right Intake Servo", rightIntakeServo.getPower());
         }
         telemetry.update();
 
