@@ -48,7 +48,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@TeleOp(name = "Gobilda StarterBot", group = "StarterBot")
+@TeleOp(name = "Motor Tester", group = "StarterBot")
 //@Disabled
 public class MotorTest extends OpMode {
 

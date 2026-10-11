@@ -59,10 +59,10 @@ public class LimelightTester extends LinearOpMode {
     public void runOpMode() {
 
         // Find the four drive motors by the names in the robot configuration.
-        frontLeft = hardwareMap.dcMotor.get("frontLeft");
-        frontRight = hardwareMap.dcMotor.get("frontRight");
-        backLeft = hardwareMap.dcMotor.get("backLeft");
-        backRight = hardwareMap.dcMotor.get("backRight");
+        frontLeft = hardwareMap.dcMotor.get("front_left");
+        frontRight = hardwareMap.dcMotor.get("front_right");
+        backLeft = hardwareMap.dcMotor.get("back_left");
+        backRight = hardwareMap.dcMotor.get("back_right");
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         frontRight.setDirection(DcMotor.Direction.REVERSE);
@@ -97,7 +97,7 @@ public class LimelightTester extends LinearOpMode {
                 aim(hive);
             } else {
                 wasOnTarget = false;
-                double forward = gamepad1.left_stick_y;
+                double forward = -gamepad1.left_stick_y;
                 double strafe = gamepad1.left_stick_x;
                 double turn = -1.0f * gamepad1.right_stick_x;
                 drive(forward, strafe, turn);
@@ -143,7 +143,7 @@ public class LimelightTester extends LinearOpMode {
             // Turning right (clockwise) is NEGATIVE turn in drive().
             double power = TURN_KP * Math.abs(error);
             power = Range.clip(power, TURN_MIN_POWER, TURN_MAX_POWER);
-            turn = -Math.signum(error) * power;
+            turn = -Math.signum(error) * power; // TODO: invert this and test
         }
         drive(0, 0, turn);
 
