@@ -32,12 +32,18 @@ import java.util.List;
 public class LimelightTester extends LinearOpMode {
 
     // ---------------- Tuning / configuration ----------------
-    static final int PIPELINE = 9;
+    static final int PIPELINE = 0;
 
     // Hive tag IDs for each alliance. TODO: fill in from the game manual.
     // While a list is empty, ANY tag the Limelight sees is used.
-    static final int[] BLUE_HIVE_TAG_IDS = {};
-    static final int[] RED_HIVE_TAG_IDS = {};
+    static final int[] BLUE_HIVE_TAG_IDS = {
+            38, 39, 40, 41, // Audience side
+            42, 43, 44, 45  // Scoring side
+    };
+    static final int[] RED_HIVE_TAG_IDS = {
+            30, 31, 32, 33, // Scoring side
+            34, 35, 36, 37  // Audience side    
+    };
 
     static final double TURN_KP = 0.02;          // turn power per degree of tx
     static final double TURN_MIN_POWER = 0.06;   // enough to overcome friction
@@ -109,6 +115,7 @@ public class LimelightTester extends LinearOpMode {
             telemetry.addData("Mode", aiming ? "AIMING (sticks disabled)" : "DRIVING");
             telemetry.addData("Alliance", blueAlliance ? "BLUE" : "RED");
             if (hive != null) {
+                telemetry.addData("LL Pipeline", PIPELINE);
                 telemetry.addData("Hive tags seen", hive.tagCount);
                 telemetry.addData("tx (deg)", String.format("%.2f", hive.txDeg));
                 telemetry.addData("Distance (in)", String.format("%.1f", hive.distanceMeters * METERS_TO_INCHES));
@@ -143,7 +150,9 @@ public class LimelightTester extends LinearOpMode {
             // Turning right (clockwise) is NEGATIVE turn in drive().
             double power = TURN_KP * Math.abs(error);
             power = Range.clip(power, TURN_MIN_POWER, TURN_MAX_POWER);
-            turn = -Math.signum(error) * power; // TODO: invert this and test
+            //turn = -Math.signum(error) * power; // TODO: invert this and test
+            turn = Math.signum(error) * power; // here's the test
+
         }
         drive(0, 0, turn);
 
@@ -209,13 +218,7 @@ public class LimelightTester extends LinearOpMode {
         return false;
     }
 
-    /**
-     * Mecanum mixing: turn "go this way and spin this much" into four motor powers.
-     *
-     * @param forward +1 is straight out the front of the robot
-     * @param right   +1 is sideways to the robot's right -- what mecanum wheels are for
-     * @param turn    +1 is counterclockwise, the direction heading increases
-     */
+    // standard mecanum drive
     private void drive(double forward, double right, double turn) {
         double fl = forward + right - turn;
         double bl = forward - right - turn;
