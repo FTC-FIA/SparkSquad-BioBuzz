@@ -56,6 +56,7 @@ public class LimelightTester extends LinearOpMode {
     DcMotor frontRight;
     DcMotor backLeft;
     DcMotor backRight;
+    DcMotor intake;
     Limelight3A limelight;
 
     boolean blueAlliance = true;
@@ -69,6 +70,7 @@ public class LimelightTester extends LinearOpMode {
         frontRight = hardwareMap.dcMotor.get("front_right");
         backLeft = hardwareMap.dcMotor.get("back_left");
         backRight = hardwareMap.dcMotor.get("back_right");
+        intake = hardwareMap.dcMotor.get("intake_motor");
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         frontRight.setDirection(DcMotor.Direction.REVERSE);
@@ -107,6 +109,12 @@ public class LimelightTester extends LinearOpMode {
                 double strafe = gamepad1.left_stick_x;
                 double turn = -1.0f * gamepad1.right_stick_x;
                 drive(forward, strafe, turn);
+                if(gamepad1.right_bumper) {
+                    intake.setPower(1);
+                }
+                else {
+                    intake.setPower(0);
+                }
                 telemetry.addData("Drive", String.format(
                         "fwd: %.1f  strafe: %.1f  turn: %.1f", forward, strafe, turn));
             }
