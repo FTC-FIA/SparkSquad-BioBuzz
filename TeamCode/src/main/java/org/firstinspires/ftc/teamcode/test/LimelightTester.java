@@ -109,10 +109,9 @@ public class LimelightTester extends LinearOpMode {
                 double strafe = gamepad1.left_stick_x;
                 double turn = -1.0f * gamepad1.right_stick_x;
                 drive(forward, strafe, turn);
-                if(gamepad1.right_bumper) {
+                if (gamepad1.right_bumper) {
                     intake.setPower(1);
-                }
-                else {
+                } else {
                     intake.setPower(0);
                 }
                 telemetry.addData("Drive", String.format(
