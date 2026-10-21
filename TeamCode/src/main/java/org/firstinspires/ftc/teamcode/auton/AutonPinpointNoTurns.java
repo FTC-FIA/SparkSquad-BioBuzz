@@ -37,7 +37,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
  * two lines still take it to the same two spots on the field.
  */
 @Autonomous(name = "Auton 2: Pinpoint", group = "BioBuzz")
-public class AutonPinpoint extends LinearOpMode {
+public class AutonPinpointNoTurns extends LinearOpMode {
 
     // Where to go, in field coordinates. The only numbers you change to go somewhere else.
     static final double START_X = -64.5;          // left side against the red wall
