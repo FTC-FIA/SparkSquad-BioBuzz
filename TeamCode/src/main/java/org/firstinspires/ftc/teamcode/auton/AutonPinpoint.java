@@ -40,15 +40,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 public class AutonPinpoint extends LinearOpMode {
 
     // Where to go, in field coordinates. The only numbers you change to go somewhere else.
-    static final double START_X = -12;          // left side against the red wall
-    static final double START_Y = -63;
-    static final double START_HEADING = 180;    // facing -x, along the wall toward the zone
+    static final double START_X = -64.5;          // left side against the red wall
+    static final double START_Y = 12;
+    static final double START_HEADING = 0;    // facing -x, along the wall toward the zone
 
-    static final double LEAVE_X = -12;          // move 1: off the wall
-    static final double LEAVE_Y = -59;
+    static final double LEAVE_X = -59.5;          // move 1: off the wall
+    static final double LEAVE_Y = 12;
 
-    static final double PARK_X = -19;           // move 2: into the loading zone
-    static final double PARK_Y = -59;
+    static final double PARK_X = -59.5;           // move 2: into the loading zone
+    static final double PARK_Y = 18;
 
     // How we drive. One speed the whole way, same as the timed version.
     static final double DRIVE_POWER = 0.2;      // how hard to push, 0 to 1
@@ -66,9 +66,8 @@ public class AutonPinpoint extends LinearOpMode {
         backLeft = hardwareMap.dcMotor.get("back_left");
         backRight = hardwareMap.dcMotor.get("back_right");
 
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);   // left motors face the other way
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
-
 
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setOffsets(-7.375, -5.875, DistanceUnit.INCH);
