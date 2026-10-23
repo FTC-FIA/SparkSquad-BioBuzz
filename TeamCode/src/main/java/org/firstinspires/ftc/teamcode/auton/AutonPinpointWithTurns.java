@@ -12,7 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-@Autonomous(name = "Auton Pinpoint (w/ Heading)", group = "BioBuzz")
+@Autonomous(name = "Auton Pinpoint (w/ Heading)", group = "Main")
 public class AutonPinpointWithTurns extends LinearOpMode {
 
     // Where to go, in field coordinates. The only numbers you change to go somewhere else.

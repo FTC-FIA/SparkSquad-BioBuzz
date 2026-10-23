@@ -10,33 +10,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-/**
- * RED Autonomous, version 2: the same two moves as AutonTimedDrive, but the robot decides when to
- * stop by looking at WHERE IT IS instead of at a clock.
- *
- * Two ideas:
- *   ODOMETRY -- the Pinpoint tracks the robot's position on the field. Call update(), read the pose.
- *   FIELD-RELATIVE DRIVING -- the plan is written in field coordinates, and driveFieldRelative()
- *   converts to the robot's own forward/right at the last moment.
- *
- * Watch where it stops: it will NOT be (-19, -59). The robot runs at full DRIVE_POWER right up to
- * the instant the odometry says "close enough," then has to coast. AutonPinpointProportional fixes
- * that; this is the "before" picture.
- *
- * FIELD COORDINATES (official FTC, drawn from the red alliance's side of the field)
- *   origin at field center; x and y each run -72 to +72 inches
- *   +x to your right, +y away from the red wall -- so red wall is y = -72, blue wall is y = +72
- *   heading is degrees counterclockwise from +x:  0 right, 90 up, 180 left, -90 down
- *
- * THE PLAN
- *   start at (-12, -63) facing 180, left side against the red wall
- *   move 1: go to (-12, -59)  -- 4 inches off the wall, scores LEAVE
- *   move 2: go to (-19, -59)  -- 7 inches into the loading zone, scores PARK
- *
- * The plan never says "forward" or "strafe." Start the robot facing a different way and these same
- * two lines still take it to the same two spots on the field.
- */
-@Autonomous(name = "Auton 2: Pinpoint", group = "BioBuzz")
+
+@Autonomous(name = "Auton 2: Pinpoint", group = "Main")
 public class AutonPinpointNoTurns extends LinearOpMode {
 
     // Where to go, in field coordinates. The only numbers you change to go somewhere else.
