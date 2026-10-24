@@ -1,9 +1,8 @@
-package org.firstinspires.ftc.teamcode.auton;
-
-import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
+package org.firstinspires.ftc.teamcode.attic;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -12,31 +11,24 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-@Autonomous(name = "Auton Pinpoint (w/ Heading)", group = "BioBuzz")
-public class AutonPinpointWithTurns extends LinearOpMode {
+@Disabled
+@Autonomous(name = "Auton 2: Pinpoint", group = "Main")
+public class AutonPinpointNoTurns extends LinearOpMode {
 
     // Where to go, in field coordinates. The only numbers you change to go somewhere else.
-    static final double START_X = -12;          // left side against the red wall
-    static final double START_Y = -63;
-    static final double START_HEADING = 180;    // facing -x, along the wall toward the zone
+    static final double START_X = -64.5;          // left side against the red wall
+    static final double START_Y = 12;
+    static final double START_HEADING = 0;    // facing -x, along the wall toward the zone
 
-    static final double LEAVE_X = -12;          // move 1: straight out from the wall, no turning
-    static final double LEAVE_Y = -48;
-    static final double LEAVE_HEADING = 180;
+    static final double LEAVE_X = -59.5;          // move 1: off the wall
+    static final double LEAVE_Y = 12;
 
-    static final double TURN_X = -30;           // move 2: drive and turn at the same time
-    static final double TURN_Y = -48;
-    static final double TURN_HEADING = 0;       // end up facing +y, out into the field
+    static final double PARK_X = -59.5;           // move 2: into the loading zone
+    static final double PARK_Y = 18;
 
-    static final double PARK_X = -30;           // move 3: down into the loading zone
-    static final double PARK_Y = -59;
-    static final double PARK_HEADING = 90;
-
-    // How we drive. One speed the whole way.
+    // How we drive. One speed the whole way, same as the timed version.
     static final double DRIVE_POWER = 0.2;      // how hard to push, 0 to 1
-    static final double TURN_POWER = 0.2;       // how hard to spin, 0 to 1
     static final double TOLERANCE = 0.5;        // inches; "close enough, stop"
-    static final double HEADING_TOLERANCE = 3;  // degrees; "pointed close enough, stop turning"
     static final double TIMEOUT = 5.0;          // seconds; give up rather than hang forever
 
     DcMotor frontLeft, frontRight, backLeft, backRight;
@@ -52,14 +44,15 @@ public class AutonPinpointWithTurns extends LinearOpMode {
 
         frontRight.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
-        frontRight.setZeroPowerBehavior(BRAKE);
-        frontLeft.setZeroPowerBehavior(BRAKE);
-        backRight.setZeroPowerBehavior(BRAKE);
-        backLeft.setZeroPowerBehavior(BRAKE);
 
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setOffsets(-7.375, -5.875, DistanceUnit.INCH);
 
+        // On a real robot, also call setOffsets(), setEncoderResolution() and setEncoderDirections()
+        // here to describe how the odometry pods are mounted. The simulator does not need them.
+
+        // The important line. The Pinpoint only knows how far it has rolled since you last told it
+        // something, so tell it where it is starting. Now every pose it reports is a field coordinate.
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, START_X, START_Y,
                 AngleUnit.DEGREES, START_HEADING));
 
@@ -68,26 +61,21 @@ public class AutonPinpointWithTurns extends LinearOpMode {
 
         waitForStart();
 
-        driveTo(LEAVE_X, LEAVE_Y, LEAVE_HEADING);   // out from the wall -- scores LEAVE
-        driveTo(TURN_X, TURN_Y, TURN_HEADING);      // drive and turn together -- the thing to watch
-        driveTo(PARK_X, PARK_Y, PARK_HEADING);      // into the loading zone -- scores PARK
+        driveTo(LEAVE_X, LEAVE_Y);   // scores LEAVE
+        driveTo(PARK_X, PARK_Y);     // scores PARK
 
         showPose();
         sleep(3000);
     }
 
     /**
-     * Go to a spot on the field AND face a given direction. Driving and turning happen together,
-     * each at a fixed power, and each stops on its own once it is close enough.
+     * Head for a spot on the field at DRIVE_POWER, and cut the motors once we are close enough.
+     * Full speed, then off, nothing in between -- watching where that leaves the robot is the point.
      */
-    private void driveTo(double targetX, double targetY, double targetHeading) {
+    private void driveTo(double targetX, double targetY) {
 
         ElapsedTime timer = new ElapsedTime();
-        boolean atPosition = false;
-        boolean atHeading = false;
 
-        // The OpMode yields control to driveTo() until it's done.
-        // This might not work for real auton
         while (opModeIsActive() && timer.seconds() < TIMEOUT) {
 
             pinpoint.update();                      // nothing updates until you call this
@@ -100,26 +88,14 @@ public class AutonPinpointWithTurns extends LinearOpMode {
             double errorY = targetY - y;
             double distance = Math.hypot(errorX, errorY);
 
-            // Shortest way round: 170 to -170 is a 20 degree turn, not 340.
-            double headingError = AngleUnit.normalizeDegrees(targetHeading - heading);
-
-            // Once we arrive, stay arrived. Without this the robot would chase an overshoot back
-            // and forth across the target until the timeout.
-            if (distance < TOLERANCE) atPosition = true;
-            if (Math.abs(headingError) < HEADING_TOLERANCE) atHeading = true;
-
             showPose();
-            telemetry.addData("Target", "x: %.1f  y: %.1f  heading: %.1f",
-                    targetX, targetY, targetHeading);
-            telemetry.addData("Error", "%.1f in   %.1f deg", distance, headingError);
+            telemetry.addData("Target", "x: %.1f  y: %.1f   (%.1f in away)", targetX, targetY, distance);
             telemetry.update();
 
-            if (atPosition && atHeading) break;
+            // The whole improvement over the timed version: what we check is our position, not a clock.
+            if (distance < TOLERANCE) break;
 
-            double power = atPosition ? 0 : DRIVE_POWER;
-            double turn = atHeading ? 0 : TURN_POWER * Math.signum(headingError);
-
-            driveFieldRelative(errorX, errorY, heading, power, turn);
+            driveFieldRelative(errorX, errorY, heading, DRIVE_POWER, 0);
         }
 
         stopDriving();
@@ -134,9 +110,6 @@ public class AutonPinpointWithTurns extends LinearOpMode {
      * 2-D rotation. Dividing by the length throws away the distance and keeps only the direction;
      * power decides the speed.
      *
-     * The turn is NOT rotated -- spinning means the same thing in both frames. It just rides along,
-     * which is what lets the robot travel a straight line on the field while it turns.
-     *
      * @param fieldX  x part of the direction to travel, in field coordinates
      * @param fieldY  y part of the direction to travel, in field coordinates
      * @param heading robot's current heading, degrees
@@ -147,12 +120,8 @@ public class AutonPinpointWithTurns extends LinearOpMode {
         double h = Math.toRadians(heading);
         double length = Math.hypot(fieldX, fieldY);
 
-        double forward = 0;                         // already on the spot? then there is no
-        double right = 0;                           // direction to convert -- just turn
-        if (length > 0) {
-            forward = (fieldX * Math.cos(h) + fieldY * Math.sin(h)) / length;
-            right = (fieldX * Math.sin(h) - fieldY * Math.cos(h)) / length;
-        }
+        double forward = (fieldX * Math.cos(h) + fieldY * Math.sin(h)) / length;
+        double right = (fieldX * Math.sin(h) - fieldY * Math.cos(h)) / length;
 
         drive(forward * power, right * power, turn);
     }
