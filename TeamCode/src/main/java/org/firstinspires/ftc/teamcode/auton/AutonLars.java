@@ -17,13 +17,15 @@ public class AutonLars extends OrangeBotBaseOpMode {
     static final double START_Y = -12;
     static final double START_HEADING = 180;    // facing -x, along the wall toward the zone
 
-    static final double LEAVE_X = 24;          // move 1: straight out from the wall, no turning
-    static final double LEAVE_Y = -56;
-    static final double LEAVE_HEADING = 270;
+    static final double Garden_X = 52;          // move 1: straight out from the wall, no turning
+    static final double Garden_Y = -56;
+    static final double Garden_HEADING = 270;
 
-    static final double TURN_X = 0;           // move 2: drive and turn at the same time
-    static final double TURN_Y = 0;
-    static final double TURN_HEADING = 0;      // end up facing +y, out into the field
+    // end up facing +y, out into the field
+
+    static final double START2_X = -55;          // left side against the red wall
+    static final double START2_Y = -12;
+    static final double START2_HEADING = 0;
 
     static final double PARK_X = -30;           // move 3: down into the loading zone
     static final double PARK_Y = -59;
@@ -54,16 +56,18 @@ public class AutonLars extends OrangeBotBaseOpMode {
 
         waitForStart();
 
-        drive.driveTo(LEAVE_X, LEAVE_Y, LEAVE_HEADING);
-        sleep(1000);
+        drive.driveTo(Garden_X,Garden_Y,0);
+        sleep(500);
+        drive.driveTo(558,Garden_Y,0);
+        sleep(500);
 
         // why drive back to start?
-        drive.driveTo(START_X,START_Y, START_HEADING);
+        drive.driveTo(START2_X,START2_Y, START2_HEADING);
+        sleep(1000);
+        drive.driveTo(PARK_X,PARK_Y,PARK_HEADING);
         sleep(1000);
 
-        // TODO: use variables for all coordinates of interest
-        drive.driveTo(63, -36, START_HEADING);
-        drive.driveTo(PARK_X, PARK_Y, PARK_HEADING);      // into the loading zone -- scores PARK
+        // into the loading zone -- scores PARK
 
         drive.showPose();
         sleep(3000); // don't need this prolly
