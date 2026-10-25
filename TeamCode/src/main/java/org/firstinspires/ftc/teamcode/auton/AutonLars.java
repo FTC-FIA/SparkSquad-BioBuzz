@@ -54,16 +54,14 @@ public class AutonLars extends OrangeBotBaseOpMode {
 
         waitForStart();
 
-        drive.driveTo(Garden_X,Garden_Y,Garden_HEADING);
+        drive.driveTo(Garden_X,Garden_Y,0);
         sleep(1000);
 
         // why drive back to start?
         drive.driveTo(START_X,START_Y, START_HEADING);
         sleep(1000);
 
-        // TODO: use variables for all coordinates of interest
-        drive.driveTo(63, -36, START_HEADING);
-        drive.driveTo(PARK_X, PARK_Y, PARK_HEADING);      // into the loading zone -- scores PARK
+        // into the loading zone -- scores PARK
 
         drive.showPose();
         sleep(3000); // don't need this prolly
