@@ -17,9 +17,9 @@ public class AutonLars extends OrangeBotBaseOpMode {
     static final double START_Y = -12;
     static final double START_HEADING = 180;    // facing -x, along the wall toward the zone
 
-    static final double LEAVE_X = 24;          // move 1: straight out from the wall, no turning
-    static final double LEAVE_Y = -56;
-    static final double LEAVE_HEADING = 270;
+    static final double Garden_X = 58;          // move 1: straight out from the wall, no turning
+    static final double Garden_Y = -56;
+    static final double Garden_HEADING = 270;
 
     static final double TURN_X = 0;           // move 2: drive and turn at the same time
     static final double TURN_Y = 0;
@@ -54,7 +54,7 @@ public class AutonLars extends OrangeBotBaseOpMode {
 
         waitForStart();
 
-        drive.driveTo(LEAVE_X, LEAVE_Y, LEAVE_HEADING);
+        drive.driveTo(Garden_X,Garden_Y,Garden_HEADING);
         sleep(1000);
 
         // why drive back to start?
