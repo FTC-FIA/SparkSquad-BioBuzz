@@ -17,13 +17,11 @@ public class AutonLars extends OrangeBotBaseOpMode {
     static final double START_Y = -12;
     static final double START_HEADING = 180;    // facing -x, along the wall toward the zone
 
-    static final double Garden_X = 58;          // move 1: straight out from the wall, no turning
+    static final double Garden_X = 52;          // move 1: straight out from the wall, no turning
     static final double Garden_Y = -56;
     static final double Garden_HEADING = 270;
 
-    static final double TURN_X = 0;           // move 2: drive and turn at the same time
-    static final double TURN_Y = 0;
-    static final double TURN_HEADING = 0;      // end up facing +y, out into the field
+    // end up facing +y, out into the field
 
     static final double PARK_X = -30;           // move 3: down into the loading zone
     static final double PARK_Y = -59;

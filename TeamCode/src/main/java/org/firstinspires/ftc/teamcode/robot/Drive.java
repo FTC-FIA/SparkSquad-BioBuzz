@@ -19,8 +19,8 @@ public class Drive {
     private GoBildaPinpointDriver pinpoint;
     private Telemetry telemetry;
 
-    private final double DEFAULT_DRIVE_POWER = 0.2;
-    private final double DEFAULT_TURN_POWER = 0.2;
+    private final double DEFAULT_DRIVE_POWER = 0.5;
+    private final double DEFAULT_TURN_POWER = 0.5;
     private final double DEFAULT_POSITION_TOLERANCE = 0.5; // in inches
     private final double DEFAULT_HEADING_TOLERANCE = 3; // in degrees
     private final double DEFAULT_TIMEOUT = 5.0; // in seconds
