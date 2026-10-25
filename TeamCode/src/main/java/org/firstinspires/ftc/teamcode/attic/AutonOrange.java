@@ -1,6 +1,7 @@
-package org.firstinspires.ftc.teamcode.auton;
+package org.firstinspires.ftc.teamcode.attic;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -8,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.robot.Drive;
 import org.firstinspires.ftc.teamcode.base.OrangeBotBaseOpMode;
 
+@Disabled
 @Autonomous(name = "Auton Orange", group = "Main")
 public class AutonOrange extends OrangeBotBaseOpMode {
 

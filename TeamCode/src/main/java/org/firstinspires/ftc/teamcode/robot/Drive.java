@@ -137,6 +137,62 @@ public class Drive {
         );
     }
 
+    public void driveTo(
+            double targetX,
+            double targetY,
+            double targetHeading,
+            double drivePower
+    ) {
+        driveTo(
+                targetX,
+                targetY,
+                targetHeading,
+                drivePower,
+                DEFAULT_TURN_POWER,
+                DEFAULT_POSITION_TOLERANCE,
+                DEFAULT_HEADING_TOLERANCE,
+                DEFAULT_TIMEOUT
+        );
+    }
+
+    public void driveTo(
+            double targetX,
+            double targetY,
+            double targetHeading,
+            double drivePower,
+            double turnPower
+    ) {
+        driveTo(
+                targetX,
+                targetY,
+                targetHeading,
+                drivePower,
+                turnPower,
+                DEFAULT_POSITION_TOLERANCE,
+                DEFAULT_HEADING_TOLERANCE,
+                DEFAULT_TIMEOUT
+        );
+    }
+
+    public void driveTo(
+            double targetX,
+            double targetY,
+            double targetHeading,
+            double drivePower,
+            double turnPower,
+            double timeoutInSeconds
+    ) {
+        driveTo(
+                targetX,
+                targetY,
+                targetHeading,
+                drivePower,
+                turnPower,
+                DEFAULT_POSITION_TOLERANCE,
+                DEFAULT_HEADING_TOLERANCE,
+                timeoutInSeconds
+        );
+    }
     /**
      * Drive toward a direction measured on the FIELD, whichever way the robot happens to be pointed.
      *
