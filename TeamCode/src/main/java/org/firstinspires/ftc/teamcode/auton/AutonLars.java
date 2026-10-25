@@ -23,7 +23,7 @@ public class AutonLars extends OrangeBotBaseOpMode {
 
     // end up facing +y, out into the field
 
-    static final double START2_X = -63;          // left side against the red wall
+    static final double START2_X = -55;          // left side against the red wall
     static final double START2_Y = -12;
     static final double START2_HEADING = 0;
 
@@ -58,11 +58,13 @@ public class AutonLars extends OrangeBotBaseOpMode {
 
         drive.driveTo(Garden_X,Garden_Y,0);
         sleep(500);
-        drive.driveTo(58,Garden_Y,0);
+        drive.driveTo(558,Garden_Y,0);
         sleep(500);
 
         // why drive back to start?
         drive.driveTo(START2_X,START2_Y, START2_HEADING);
+        sleep(1000);
+        drive.driveTo(PARK_X,PARK_Y,PARK_HEADING);
         sleep(1000);
 
         // into the loading zone -- scores PARK
