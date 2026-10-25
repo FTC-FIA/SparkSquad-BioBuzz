@@ -25,8 +25,8 @@ public class AutonOneAbram extends OrangeBotBaseOpMode {
     static final double PARK_Y = 12;
     static final double PARK_HEADING = 180;
 
-    static final double PARK2_X = -24;           // move 2: into the loading zone
-    static final double PARK2_Y = -57;
+    static final double PARK2_X = 24;           // move 2: into the loading zone
+    static final double PARK2_Y = 57;
     static final double PARK2_HEADING = 90;
 
     static final double PARK3_X = -20;           // move 2: into the loading zone
