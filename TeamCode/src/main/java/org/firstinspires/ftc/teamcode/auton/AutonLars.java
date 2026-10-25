@@ -6,11 +6,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.base.SimBotBaseOpMode;
-import org.firstinspires.ftc.teamcode.sim.SimStart;
+import org.firstinspires.ftc.teamcode.base.OrangeBotBaseOpMode;
+
 
 @Autonomous(name = "Auton 1st Shooter (Lars)", group = "Auton")
-public class AutonLars extends SimBotBaseOpMode {
+public class AutonLars extends OrangeBotBaseOpMode {
 
     // Where to go, in field coordinates. The only numbers you change to go somewhere else.
     static final double START_X = 63;          // left side against the red wall
@@ -43,8 +43,6 @@ public class AutonLars extends SimBotBaseOpMode {
 
         // SIMULATOR ONLY, both lines -- delete for the real robot. The sleep gives the physics a
         // moment to actually move the robot before we read any sensors.
-        SimStart.setPose(START_X, START_Y, START_HEADING);
-        sleep(100);
 
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 

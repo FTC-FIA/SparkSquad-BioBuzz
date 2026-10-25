@@ -8,12 +8,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.robot.Drive;
 
 public abstract class OrangeBotBaseOpMode extends LinearOpMode {
 
     protected DcMotor frontLeft, frontRight, backLeft, backRight, intake;
     protected GoBildaPinpointDriver pinpoint;
     protected Limelight3A limelight;
+    protected Drive drive;
 
     /**
      * Configures the hardware that all OpModes using this robot share.
@@ -37,6 +39,15 @@ public abstract class OrangeBotBaseOpMode extends LinearOpMode {
         backRight.setZeroPowerBehavior(BRAKE);
         backLeft.setZeroPowerBehavior(BRAKE);
         pinpoint.setOffsets(-7.375, -5.875, DistanceUnit.INCH);
+
+        drive = new Drive(
+                frontLeft,
+                frontRight,
+                backLeft,
+                backRight,
+                pinpoint,
+                telemetry
+        );
     }
 
 }
