@@ -47,9 +47,9 @@ public class Auton1stShooter extends OrangeBotBaseOpMode {
         sleep(3000);
 
         // pick up pollen from the garden
-        drive.driveTo(GARDEN_START_X, GARDEN_Y, GARDEN_HEADING, FAST_DRIVE_POWER);
+        drive.driveTo(GARDEN_START_X, GARDEN_Y, GARDEN_HEADING, FAST_DRIVE_POWER,0,8);
         sleep(500);
-        drive.driveTo(GARDEN_END_X, GARDEN_Y, GARDEN_HEADING, SLOW_DRIVE_POWER, 0,8);
+        drive.driveTo(GARDEN_END_X, GARDEN_Y, GARDEN_HEADING, SLOW_DRIVE_POWER);
         sleep(500);
 
         // drive to 2nd shooting spot
