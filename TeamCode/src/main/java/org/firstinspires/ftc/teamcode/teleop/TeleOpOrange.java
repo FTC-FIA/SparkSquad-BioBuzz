@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.teamcode.base.OrangeBotBaseOpMode;
 
-@TeleOp(name = "TeleOp Main", group = "Main")
+@TeleOp(name = "TeleOp Orange", group = "Main")
 public class TeleOpOrange extends OrangeBotBaseOpMode {
 
     private boolean intakeOn = false;
