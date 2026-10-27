@@ -42,7 +42,7 @@ public class TeleOpOrange extends OrangeBotBaseOpMode {
             }
             intake.setPower(intakeOn ? intakePower : 0.0);
 
-            telemetry.addData("Intake Power", intakePower));
+            telemetry.addData("Intake Power", intakePower);
         }
 
     }

@@ -29,7 +29,7 @@ public abstract class OrangeBotBaseOpMode extends LinearOpMode {
         frontRight = hardwareMap.dcMotor.get("front_right");
         backLeft = hardwareMap.dcMotor.get("back_left");
         backRight = hardwareMap.dcMotor.get("back_right");
-        //intake = hardwareMap.dcMotor.get("intake_motor");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
