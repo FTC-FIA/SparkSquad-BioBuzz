@@ -15,12 +15,12 @@ public class Auton1stShooter extends OrangeBotBaseOpMode {
     static final double START_Y = -12;
     static final double START_HEADING = 180;
 
-    static final double GARDEN_START_X = 52;
-    static final double GARDEN_END_X = 58;
+    static final double GARDEN_START_X = 47;
+    static final double GARDEN_END_X = 53;
     static final double GARDEN_Y = -56;
     static final double GARDEN_HEADING = 0;
 
-    static final double SHOOT2_X = -55;
+    static final double SHOOT2_X = -50;
     static final double SHOOT2_Y = -12;
     static final double SHOOT2_HEADING = 0;
 
