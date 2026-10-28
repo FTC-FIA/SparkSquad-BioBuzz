@@ -15,12 +15,12 @@ public class Auton1stShooter extends OrangeBotBaseOpMode {
     static final double START_Y = -12;
     static final double START_HEADING = 180;
 
-    static final double GARDEN_START_X = 52;
+    static final double GARDEN_START_X = 47;
     static final double GARDEN_END_X = 58;
     static final double GARDEN_Y = -56;
     static final double GARDEN_HEADING = 0;
 
-    static final double SHOOT2_X = -55;
+    static final double SHOOT2_X = -52.5;
     static final double SHOOT2_Y = -12;
     static final double SHOOT2_HEADING = 0;
 
@@ -47,7 +47,7 @@ public class Auton1stShooter extends OrangeBotBaseOpMode {
         sleep(3000);
 
         // pick up pollen from the garden
-        drive.driveTo(GARDEN_START_X, GARDEN_Y, GARDEN_HEADING, FAST_DRIVE_POWER);
+        drive.driveTo(GARDEN_START_X, GARDEN_Y, GARDEN_HEADING, FAST_DRIVE_POWER,0.8);
         sleep(500);
         drive.driveTo(GARDEN_END_X, GARDEN_Y, GARDEN_HEADING, SLOW_DRIVE_POWER);
         sleep(500);
