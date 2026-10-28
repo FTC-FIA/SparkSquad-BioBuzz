@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.base.OrangeBotBaseOpMode;
 public class TeleOpOrange extends OrangeBotBaseOpMode {
 
     private boolean intakeOn = false;
+    private boolean reverse = false;
     private double intakePower = 0.1;
 
     @Override
@@ -24,9 +25,14 @@ public class TeleOpOrange extends OrangeBotBaseOpMode {
 
         waitForStart();
 
+        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         while (opModeIsActive()) {
             if (gamepad1.yWasPressed()) {
                 intakeOn = !intakeOn;
+            }
+            if (gamepad1.xWasPressed()) {
+                reverse = !reverse;
             }
             if (gamepad1.dpadUpWasPressed()) {
                 intakePower += 0.01;
@@ -40,7 +46,12 @@ public class TeleOpOrange extends OrangeBotBaseOpMode {
                     intakePower = 0.0;
                 }
             }
-            intake.setPower(intakeOn ? intakePower : 0.0);
+            double thePower = reverse ? -intakePower : intakePower;
+            intake.setPower(intakeOn ? thePower : 0.0);
+
+            double position = intake.getCurrentPosition();
+
+            telemetry.addData("Current position", position);
             telemetry.addData("Intake Power", intakePower);
             telemetry.update();
         }
