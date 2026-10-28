@@ -46,10 +46,18 @@ public class TeleOpOrange extends OrangeBotBaseOpMode {
                     intakePower = 0.0;
                 }
             }
+
+
             double thePower = reverse ? -intakePower : intakePower;
             intake.setPower(intakeOn ? thePower : 0.0);
 
             double position = intake.getCurrentPosition();
+
+            if (gamepad1.aWasPressed()) {
+                intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                intake.setTargetPosition(1450);
+                intake.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            }
 
             telemetry.addData("Current position", position);
             telemetry.addData("Intake Power", intakePower);
