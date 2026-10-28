@@ -56,6 +56,7 @@ public class TeleOpOrange extends OrangeBotBaseOpMode {
             if (gamepad1.aWasPressed()) {
                 intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 intake.setTargetPosition(1450);
+                intake.setPower(intakePower);
                 intake.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
 
