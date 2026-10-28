@@ -6,13 +6,15 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.robot.Drive;
 
 public abstract class OrangeBotBaseOpMode extends LinearOpMode {
 
-    protected DcMotor frontLeft, frontRight, backLeft, backRight, intake;
+    protected DcMotor frontLeft, frontRight, backLeft, backRight;
+    protected DcMotorEx intake;
     protected GoBildaPinpointDriver pinpoint;
     protected Limelight3A limelight;
     protected Drive drive;
@@ -27,7 +29,7 @@ public abstract class OrangeBotBaseOpMode extends LinearOpMode {
         frontRight = hardwareMap.dcMotor.get("front_right");
         backLeft = hardwareMap.dcMotor.get("back_left");
         backRight = hardwareMap.dcMotor.get("back_right");
-        intake = hardwareMap.dcMotor.get("intake_motor");
+        intake = hardwareMap.get(DcMotorEx.class, "intake_motor");
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
