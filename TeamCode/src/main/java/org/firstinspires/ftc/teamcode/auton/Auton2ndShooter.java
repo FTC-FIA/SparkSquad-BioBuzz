@@ -18,7 +18,7 @@ public class Auton2ndShooter extends OrangeBotBaseOpMode {
     static final double SHOOT_Y = -12;
     static final double SHOOT_HEADING = 0;
 
-    static final double PARK_LEFT_X = -54;
+    static final double PARK_LEFT_X = -40;
     static final double PARK_LEFT_Y = -57;
     static final double PARK_HEADING = 0;
 
@@ -38,7 +38,7 @@ public class Auton2ndShooter extends OrangeBotBaseOpMode {
         waitForStart();
 
         // drive to shooting spot
-        drive.driveTo(SHOOT_X, SHOOT_Y, SHOOT_HEADING, FAST_DRIVE_POWER);
+        drive.driveTo(SHOOT_X, SHOOT_Y, SHOOT_HEADING, SLOW_DRIVE_POWER);
 
         // wait for hive to tip -- need timeout in case it never does
         sleep(5000);
@@ -47,7 +47,7 @@ public class Auton2ndShooter extends OrangeBotBaseOpMode {
         sleep(2000);
 
         // park
-        drive.driveTo(PARK_LEFT_X, PARK_LEFT_Y, PARK_HEADING, FAST_DRIVE_POWER);
+        drive.driveTo(PARK_LEFT_X, PARK_LEFT_Y, PARK_HEADING, SLOW_DRIVE_POWER);
         sleep(5000);
 
 
