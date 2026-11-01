@@ -128,7 +128,10 @@ public class TeleOpMain extends OpMode {
         } else {
             windmillServo.setPower(0);
         }
-
+        if (gamepad1.dpad_left){
+            windmillServo.setPower(WINDMILL_POWER);
+            windmillServo.setPower(-WINDMILL_POWER);
+        }
         /////////////////////////
         // update telemetry
         /////////////////////////
