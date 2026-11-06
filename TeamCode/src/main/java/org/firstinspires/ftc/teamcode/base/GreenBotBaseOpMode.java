@@ -48,6 +48,7 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
         backLeft.setDirection(DcMotor.Direction.REVERSE);
         turret.setDirection(DcMotor.Direction.REVERSE);
         feeder.setDirection(DcMotor.Direction.REVERSE);
+        intake.setDirection(DcMotor.Direction.REVERSE);
         rightIntakeServo.setDirection(DcMotor.Direction.REVERSE);
 
         frontRight.setZeroPowerBehavior(BRAKE);
