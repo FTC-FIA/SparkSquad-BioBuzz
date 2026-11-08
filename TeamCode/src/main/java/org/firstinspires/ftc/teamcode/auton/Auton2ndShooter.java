@@ -37,6 +37,9 @@ public class Auton2ndShooter extends OrangeBotBaseOpMode {
 
         waitForStart();
 
+        // wait for 15 seconds
+        sleep(15000);
+
         // drive to shooting spot
         drive.driveTo(SHOOT_X, SHOOT_Y, SHOOT_HEADING, SLOW_DRIVE_POWER);
 
@@ -44,6 +47,7 @@ public class Auton2ndShooter extends OrangeBotBaseOpMode {
         sleep(5000);
 
         // shoot all pollen
+        launcherTargetVelocity = 2000;
         sleep(2000);
 
         // park
