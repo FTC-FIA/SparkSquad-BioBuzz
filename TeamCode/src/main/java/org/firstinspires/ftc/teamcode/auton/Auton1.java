@@ -18,7 +18,7 @@ public class Auton1 extends GreenBotBaseOpMode {
     static final double GARDEN_START_X = 47;
     static final double GARDEN_END_X = 62.5;
     static final double GARDEN_Y = -50;
-    static final double GARDEN_HEADING = 0;
+    static final double GARDEN_HEADING = 180;
 
     static final double MIDPOINT_X = -12.0;
     static final double MIDPOINT_Y = -48.0;
