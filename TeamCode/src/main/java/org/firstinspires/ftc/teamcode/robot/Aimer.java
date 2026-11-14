@@ -59,14 +59,14 @@ public class Aimer {
     // allow. They don't have to be symmetric.
     // TODO: re-measure now that the turret faces forward (it can turn farther each way). Use
     // Limelight Test Green: line up forward, INIT, d-pad nudge to each wire limit, read ticks.
-    public static int TURRET_MIN_TICKS = -428;
-    public static int TURRET_MAX_TICKS = 428;
+    public static int TURRET_MIN_TICKS = -1000;
+    public static int TURRET_MAX_TICKS = 1000;
 
     // Where the turret sits at the start of auton (turned 90 degrees to one side), in ticks
     // from straight forward. Keep the sign: it says which side. 0 = not measured yet.
     // TODO: measure with Limelight Test Green (line up forward, INIT, nudge to the start
     // position, read "Turret ticks").
-    public static int TURRET_AUTON_START_TICKS = 0;
+    public static int TURRET_AUTON_START_TICKS = 1000;
 
     // turnTurretTo(): power per tick of error, and how close counts as "there"
     public static double TURRET_TURN_KP = 0.005;

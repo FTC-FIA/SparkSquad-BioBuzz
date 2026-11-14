@@ -7,6 +7,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.base.GreenBotBaseOpMode;
 import org.firstinspires.ftc.teamcode.robot.Aimer;
+import org.firstinspires.ftc.teamcode.robot.Launcher;
 
 /**
  * Start 2 -> SHOOT2 (wait for our partner to tip the hive) -> left flower -> SHOOT2 -> park left.
@@ -22,8 +23,6 @@ public class S2_LF_S2_PL extends GreenBotBaseOpMode implements Locations {
     static final double SLOW_DRIVE_POWER = 0.3;
     static final double INTAKE_POWER = 1.0;
 
-    static final double LAUNCHER_TARGET_VELOCITY = 1250;
-
     // Where to point the turret at SHOOT2 before auto-aiming, in ticks from straight forward.
     // 0 = straight forward; change it if the hive isn't in the Limelight's view from there.
     static final int SHOOT2_TURRET_TICKS = 0;
@@ -32,7 +31,6 @@ public class S2_LF_S2_PL extends GreenBotBaseOpMode implements Locations {
     static final double TIP_WAIT_TIMEOUT = 15.0;   // seconds to wait for the partner to tip the hive
     static final double AIM_TIMEOUT = 1.5;         // seconds
     static final double LAUNCHER_TIMEOUT = 2.0;    // seconds
-    static final long FEED_TIME_MS = 3000;         // long enough to shoot, needs tuning
 
     @Override
     public void runOpMode() {
@@ -63,7 +61,7 @@ public class S2_LF_S2_PL extends GreenBotBaseOpMode implements Locations {
         wedgeServo.setPosition(WEDGE_UP);
         aimer.start();
 
-        launcher.setTargetVelocity(LAUNCHER_TARGET_VELOCITY);
+        launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY);
 
         drive.driveTo(SHOOT2_X, SHOOT2_Y, SHOOT2_HEADING, FAST_DRIVE_POWER);
         drive.showPose();
@@ -75,7 +73,7 @@ public class S2_LF_S2_PL extends GreenBotBaseOpMode implements Locations {
         // aim. aimFor() returns as soon as it's aimed, so this only takes the full time if the
         // hive never comes into view. Shoot either way.
         aimFor(TIP_WAIT_TIMEOUT);
-        shoot(LAUNCHER_TIMEOUT, FEED_TIME_MS);
+        shoot(LAUNCHER_TIMEOUT);
 
         // Harvest the left flower, intake running.
         intake.setPower(INTAKE_POWER);
@@ -83,9 +81,17 @@ public class S2_LF_S2_PL extends GreenBotBaseOpMode implements Locations {
                 FAST_DRIVE_POWER);
         drive.showPose();
 
+        wedgeServo.setPosition(WEDGE_DOWN); // wedge down while driving into the flower
         drive.driveTo(LEFT_FLOWER_END_X, LEFT_FLOWER_END_Y, LEFT_FLOWER_END_HEADING,
                 SLOW_DRIVE_POWER);
         drive.showPose();
+
+        sleep(1000);
+
+        drive.driveTo(LEFT_FLOWER_START_X, LEFT_FLOWER_START_Y, LEFT_FLOWER_START_HEADING,
+                FAST_DRIVE_POWER);
+        drive.showPose();
+        wedgeServo.setPosition(WEDGE_UP);   // and back up once we're through
 
         // Back to SHOOT2. Keep the intake running on the way so balls finish coming in.
         drive.driveTo(SHOOT2_X, SHOOT2_Y, SHOOT2_HEADING, FAST_DRIVE_POWER);
@@ -94,7 +100,7 @@ public class S2_LF_S2_PL extends GreenBotBaseOpMode implements Locations {
 
         // Only shoot if we can aim at the hive (same as the S1 auton's second shot).
         if (aimFor(AIM_TIMEOUT)) {
-            shoot(LAUNCHER_TIMEOUT, FEED_TIME_MS);
+            shoot(LAUNCHER_TIMEOUT);
         }
 
         // park

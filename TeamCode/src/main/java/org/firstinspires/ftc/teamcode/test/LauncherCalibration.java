@@ -29,7 +29,7 @@ public class LauncherCalibration extends GreenBotBaseOpMode {
     private static final double START_Y = -18;
     private static final double START_HEADING = 180;
 
-    private static final double START_VELOCITY = 1250;
+    private static final double START_VELOCITY = Launcher.SHOOT_VELOCITY;
     private static final double BIG_STEP = 50;     // D-pad up/down
     private static final double SMALL_STEP = 10;   // D-pad right/left
 

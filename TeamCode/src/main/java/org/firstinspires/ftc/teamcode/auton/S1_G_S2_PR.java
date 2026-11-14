@@ -7,6 +7,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.base.GreenBotBaseOpMode;
 import org.firstinspires.ftc.teamcode.robot.Aimer;
+import org.firstinspires.ftc.teamcode.robot.Launcher;
 
 
 /**
@@ -21,8 +22,6 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
     static final double SLOW_DRIVE_POWER = 0.3;
     static final double INTAKE_POWER = 1.0;
 
-    static final double LAUNCHER_TARGET_VELOCITY = 1250;
-
     // Where to point the turret at SHOOT1 before auto-aiming, in ticks from straight forward.
     // 0 = straight forward; change it if the hive isn't in the Limelight's view from there.
     static final int SHOOT1_TURRET_TICKS = 0;
@@ -30,7 +29,6 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
     static final double TURRET_TURN_TIMEOUT = 1.5; // seconds
     static final double AIM_TIMEOUT = 1.5;        // seconds
     static final double LAUNCHER_TIMEOUT = 2.0;   // seconds
-    static final long FEED_TIME_MS = 3000;        // long enough to shoot, needs tuning
 
     @Override
     public void runOpMode() {
@@ -61,7 +59,7 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
         wedgeServo.setPosition(WEDGE_UP);
         aimer.start();
 
-        launcher.setTargetVelocity(LAUNCHER_TARGET_VELOCITY); // will use calibrated shooter
+        launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY);
 
         drive.driveTo(SHOOT1_X, SHOOT1_Y, SHOOT1_HEADING, FAST_DRIVE_POWER);
         drive.showPose();
@@ -72,7 +70,8 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
 
         // Shoot even if aiming fails: the turret is probably close enough.
         aimFor(AIM_TIMEOUT);
-        shoot(LAUNCHER_TIMEOUT, FEED_TIME_MS);
+        sleep(2000);
+        shoot(LAUNCHER_TIMEOUT);
 
         // get ready to scoop, intake running
         intake.setPower(INTAKE_POWER);
@@ -96,7 +95,7 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
         // there's no point waiting longer than AIM_TIMEOUT; if it did tip, it should be done
         // by the time we get back from the garden.
         if (aimFor(AIM_TIMEOUT)) {
-            shoot(LAUNCHER_TIMEOUT, FEED_TIME_MS);
+            shoot(LAUNCHER_TIMEOUT);
         }
 
         // park

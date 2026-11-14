@@ -4,14 +4,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.base.GreenBotBaseOpMode;
-
-import java.util.ArrayDeque;
+import org.firstinspires.ftc.teamcode.robot.Launcher;
 
 @TeleOp(name = "TeleOp Main", group = "Main")
 public class TeleOpMain extends GreenBotBaseOpMode {
 
-    private final double INITIAL_LAUNCHER_TARGET_VELOCITY = 1250;
-    private final double LAUNCHER_VELOCITY_STEP = 50;
+    private final double LAUNCHER_VELOCITY_STEP = 10;
 
     private final double INTAKE_POWER = 1.0;
     private final double FEEDER_POWER = 1.0;
@@ -21,14 +19,12 @@ public class TeleOpMain extends GreenBotBaseOpMode {
     private final double TURRET_NUDGE_POWER = 0.25;
     private final double TURRET_ALIGN_POWER = 0.15;     // slower d-pad nudge while holding Guide
     private final double TURRET_ZERO_HOLD_TIME = 0.5;   // s Guide must be held before release zeroes
-    private final int DISTANCE_SAMPLES = 10;            // hive distance readings averaged for launcher speed
 
     private boolean intakeOn = true;
     private boolean wasOnTarget = false;
     private boolean intakeReversed = false;
     private boolean aligningTurret = false;            // driver 2 is holding Guide
     private final ElapsedTime alignTimer = new ElapsedTime();
-    private final ArrayDeque<Double> recentDistances = new ArrayDeque<>(); // while auto-aiming
 
     @Override
     public void runOpMode() { // when driver hits INIT
@@ -48,7 +44,7 @@ public class TeleOpMain extends GreenBotBaseOpMode {
         waitForStart();
         wedgeServo.setPosition(WEDGE_UP);
         aimer.start();
-        launcher.setTargetVelocity(INITIAL_LAUNCHER_TARGET_VELOCITY);
+        launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY);
 
         while (opModeIsActive()) {
             /////////////////////////
@@ -97,11 +93,7 @@ public class TeleOpMain extends GreenBotBaseOpMode {
             /////////////////////////
             // handle turret - driver 2
             // D-pad L/R nudges (within the soft limits) and overrides auto-aim.
-            // Hold Y to auto-aim at the hive. While it sees the hive, auto-aim also sets the
-            // launcher speed from the calibration table (Launcher.CAL_DISTANCES/CAL_VELOCITIES),
-            // using the average of the last DISTANCE_SAMPLES distance readings because single
-            // readings are noisy. Let go of Y and the launcher stays at that speed; d-pad up/down
-            // still adjusts it from there.
+            // Hold Y to auto-aim at the hive.
             //
             // Re-zeroing: hold Guide (the center button) and use d-pad L/R to line the turret
             // up facing straight forward -- this nudge IGNORES the soft limits, since they're
@@ -109,7 +101,6 @@ public class TeleOpMain extends GreenBotBaseOpMode {
             // has to be held at least TURRET_ZERO_HOLD_TIME, so a quick bump does nothing.
             /////////////////////////
             aimer.update();
-            boolean autoAiming = false;
             if (gamepad2.guide) {
                 if (!aligningTurret) {
                     aligningTurret = true;
@@ -132,17 +123,9 @@ public class TeleOpMain extends GreenBotBaseOpMode {
                 aimer.moveTurret(gamepad2.dpad_right ? TURRET_NUDGE_POWER : -TURRET_NUDGE_POWER);
             } else if (gamepad2.y) {
                 aimer.aim();
-                autoAiming = true;
-                if (aimer.hasTarget()) {
-                    recentDistances.addLast(aimer.getDistanceInches());
-                    if (recentDistances.size() > DISTANCE_SAMPLES) recentDistances.removeFirst();
-                    launcher.setTargetVelocityForDistance(averageDistance());
-                }
             } else {
                 aimer.stopTurret();
             }
-            // Start the distance average fresh on the next aim: the robot will have moved.
-            if (!autoAiming) recentDistances.clear();
 
             // Buzz driver 2's controller once when the turret first lines up.
             boolean onTarget = aimer.isOnTarget();
@@ -201,19 +184,12 @@ public class TeleOpMain extends GreenBotBaseOpMode {
         telemetry.addData("", "");
 
         telemetry.addData("DRIVER 2", "Controls");
-        telemetry.addData("Y (Hold)", "Turret Auto-Aim + launcher speed from distance");
+        telemetry.addData("Y (Hold)", "Turret Auto-Aim");
         telemetry.addData("DPad L/R", "Turret L/R");
         telemetry.addData("Guide (Hold)", "Turret zero: DPad L/R to face fwd, release");
         telemetry.addData("L Bumper", "Feeder SHOOT (Keep On)");
         telemetry.addData("R Bumper", "Feeder REVERSE (Keep On)");
         telemetry.addData("A", "Feeder OFF");
-        telemetry.addData("DPad Up/Down", "Launcher +/-50");
-    }
-
-    /** Average of the recent hive distances (inches). Only call when there is at least one. */
-    private double averageDistance() {
-        double sum = 0;
-        for (double d : recentDistances) sum += d;
-        return sum / recentDistances.size();
+        telemetry.addData("DPad Up/Down", "Launcher +/-10");
     }
 }

@@ -33,6 +33,11 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
     protected double WEDGE_UP = 0.65;
     protected double WEDGE_DOWN = 0.25;
 
+    // Feeder pattern for shooting in auton (see shoot()): run, back up briefly, run again.
+    protected static final long FEED_FIRST_MS = 2000;
+    protected static final long FEED_REVERSE_MS = 500;
+    protected static final long FEED_SECOND_MS = 2000;
+
     /**
      * Configures the hardware that all OpModes using this robot share.
      * Call this first thing on startup.
@@ -162,6 +167,7 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
             boolean onTarget = aimer.aim();
             updateLights();
             aimer.showStatus();
+            launcher.showStatus();
             telemetry.update();
 
             // make sure that the turret has been on target for a few ms, to avoid bad readings
@@ -180,16 +186,29 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
     }
 
     /**
-     * For autons: set the launcher velocity for how far away the hive is (if we can see it), wait
-     * for the launcher to get up to speed, then run the feeder long enough to shoot.
-     * Call right after aimFor(), which leaves the latest Limelight reading in the aimer.
+     * For autons: wait for the launcher to get up to speed, then shoot: run the feeder for
+     * FEED_FIRST_MS, reverse it for FEED_REVERSE_MS, then run it again for FEED_SECOND_MS.
+     * Start the launcher first with launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY).
+     * The launcher's velocity stays on telemetry the whole time, so you can watch it drop and
+     * recover as each ball goes through.
      */
-    protected void shoot(double launcherTimeoutSeconds, long feedTimeMs) {
-        if (aimer.hasTarget()) launcher.setTargetVelocityForDistance(aimer.getDistanceInches());
+    protected void shoot(double launcherTimeoutSeconds) {
         waitForLauncher(launcherTimeoutSeconds);
-        feeder.setPower(1.0); // feeder on
-        sleep(feedTimeMs);
-        feeder.setPower(0);   // feeder off
+        runFeeder(1.0, FEED_FIRST_MS);     // shoot
+        runFeeder(-1.0, FEED_REVERSE_MS);  // back up
+        runFeeder(1.0, FEED_SECOND_MS);    // shoot the rest
+        feeder.setPower(0);                // feeder off
+    }
+
+    /** Run the feeder at this power for this long, keeping the LEDs and telemetry current. */
+    private void runFeeder(double power, long milliseconds) {
+        feeder.setPower(power);
+        ElapsedTime timer = new ElapsedTime();
+        while (opModeIsActive() && timer.milliseconds() < milliseconds) {
+            updateLights();
+            launcher.showStatus();
+            telemetry.update();
+        }
     }
 
     /**

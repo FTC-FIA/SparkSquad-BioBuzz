@@ -6,6 +6,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.base.GreenBotBaseOpMode;
+import org.firstinspires.ftc.teamcode.robot.Launcher;
 
 
 @Autonomous(name = "Auton 1st Shooter", group = "Auton")
@@ -35,8 +36,6 @@ public class Auton1 extends GreenBotBaseOpMode {
     static final double FAST_DRIVE_POWER = 1.0;
     static final double SLOW_DRIVE_POWER = 0.3;
 
-    static final double LAUNCHER_TARGET_VELOCITY = 1250;
-
     @Override
     public void runOpMode() {
         config();
@@ -56,7 +55,7 @@ public class Auton1 extends GreenBotBaseOpMode {
         waitForStart();
         wedgeServo.setPosition(WEDGE_UP);
         aimer.start(); // so the aimer LED shows whether the hive is in view
-        launcher.setTargetVelocity(LAUNCHER_TARGET_VELOCITY);
+        launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY);
 
         waitForLauncher(2.0); // feed as soon as it's up to speed (gives up after 2 s)
         feeder.setPower(1.0);

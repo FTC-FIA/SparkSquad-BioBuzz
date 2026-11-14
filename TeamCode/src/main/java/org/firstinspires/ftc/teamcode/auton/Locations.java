@@ -12,44 +12,44 @@ public interface Locations {
     public static final double START2_Y = -16;
     public static final double START2_HEADING = 0;
 
-    public static final double SHOOT1_X = 61; // 2" off the wall so the shooter doesn't rub
-    public static final double SHOOT1_Y = START1_Y;
-    public static final double SHOOT1_HEADING = START1_HEADING;
+    public static final double SHOOT1_X = 57.3; // 2" off the wall so the shooter doesn't rub
+    public static final double SHOOT1_Y = -18;
+    public static final double SHOOT1_HEADING = 180;
 
-    public static final double GARDEN_START_X = 47;
-    public static final double GARDEN_START_Y = -50;
+    public static final double GARDEN_START_X = 50.6;
+    public static final double GARDEN_START_Y = -64.6;
     public static final double GARDEN_START_HEADING = 0;
 
-    public static final double GARDEN_END_X = 62.5;
-    public static final double GARDEN_END_Y = GARDEN_START_Y;
-    public static final double GARDEN_END_HEADING = GARDEN_START_HEADING;
+    public static final double GARDEN_END_X = 60;
+    public static final double GARDEN_END_Y = -64.6;
+    public static final double GARDEN_END_HEADING = 0;
 
-    public static final double WAYPOINT1_X = -12.0;
-    public static final double WAYPOINT1_Y = -48.0;
-    public static final double WAYPOINT1_HEADING = GARDEN_END_HEADING;
+    public static final double WAYPOINT1_X = -14.0;
+    public static final double WAYPOINT1_Y = -37.0;
+    public static final double WAYPOINT1_HEADING = 0;
 
-    public static final double SHOOT2_X = -52.5;
+    public static final double SHOOT2_X = -57;
     public static final double SHOOT2_Y = -16;
     public static final double SHOOT2_HEADING = 0;
 
     // Left flower: harvest by driving from START to END.
     // TODO: PLACEHOLDERS -- fill in from the notebook. Until then they equal SHOOT2, so the
     // robot just stays put instead of driving somewhere random.
-    public static final double LEFT_FLOWER_START_X = SHOOT2_X;
-    public static final double LEFT_FLOWER_START_Y = SHOOT2_Y;
-    public static final double LEFT_FLOWER_START_HEADING = SHOOT2_HEADING;
+    public static final double LEFT_FLOWER_START_X = -45.0;
+    public static final double LEFT_FLOWER_START_Y = -28.0;
+    public static final double LEFT_FLOWER_START_HEADING = 180;
 
-    public static final double LEFT_FLOWER_END_X = SHOOT2_X;
-    public static final double LEFT_FLOWER_END_Y = SHOOT2_Y;
-    public static final double LEFT_FLOWER_END_HEADING = SHOOT2_HEADING;
+    public static final double LEFT_FLOWER_END_X = -57.0;
+    public static final double LEFT_FLOWER_END_Y = -28;
+    public static final double LEFT_FLOWER_END_HEADING = 180;
 
     // TODO: PLACEHOLDER -- fill in from the notebook (these are Auton2's old park spot)
-    public static final double PARK_LEFT_X = -40;
-    public static final double PARK_LEFT_Y = -57;
-    public static final double PARK_LEFT_HEADING = 180;
+    public static final double PARK_LEFT_X = -52;
+    public static final double PARK_LEFT_Y = -61;
+    public static final double PARK_LEFT_HEADING = 90;
 
-    public static final double PARK_RIGHT_X = -30;
-    public static final double PARK_RIGHT_Y = -50;
-    public static final double PARK_RIGHT_HEADING = 180;
+    public static final double PARK_RIGHT_X = -24;
+    public static final double PARK_RIGHT_Y = -59.6;
+    public static final double PARK_RIGHT_HEADING = 0;
 
 }

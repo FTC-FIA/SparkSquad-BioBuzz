@@ -6,6 +6,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.base.GreenBotBaseOpMode;
+import org.firstinspires.ftc.teamcode.robot.Launcher;
 
 @TeleOp(name = "TeleOp 4 Auton 1", group = "Main")
 public class TeleOp4Auton extends GreenBotBaseOpMode {
@@ -14,7 +15,6 @@ public class TeleOp4Auton extends GreenBotBaseOpMode {
     static final double START_Y = -18;
     static final double START_HEADING = 180;
 
-    private final double INITIAL_LAUNCHER_TARGET_VELOCITY = 1250;
     private final double LAUNCHER_VELOCITY_STEP = 50;
 
     private final double INTAKE_POWER = 1.0;
@@ -48,7 +48,7 @@ public class TeleOp4Auton extends GreenBotBaseOpMode {
         waitForStart();
         wedgeServo.setPosition(WEDGE_UP);
         aimer.start();
-        launcher.setTargetVelocity(INITIAL_LAUNCHER_TARGET_VELOCITY);
+        launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY);
 
 
         while (opModeIsActive()) {
