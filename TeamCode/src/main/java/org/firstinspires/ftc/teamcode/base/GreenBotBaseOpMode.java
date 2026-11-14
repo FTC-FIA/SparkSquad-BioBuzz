@@ -141,4 +141,67 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
         return false;
     }
 
+    /**
+     * For autons: aim the turret at the hive until it has stayed on target for
+     * Aimer.AIM_SETTLE_TIME, keeping the LEDs and telemetry current while aiming. The turret is
+     * stopped (braked where it is) when this returns, either way.
+     *
+     * Waiting for it to stay on target matters because aim() says "on target" the moment tx is
+     * inside the tolerance, even if the turret is still coasting through.
+     *
+     * @return true if the turret is aimed, false if it timed out (no hive in view, stuck at a
+     *         soft limit, or never settled) or STOP was pressed
+     */
+    protected boolean aimFor(double timeoutSeconds) {
+        ElapsedTime timer = new ElapsedTime();
+        double onTargetSince = -1; // when the turret last came on target; -1 = not on target
+        boolean aimed = false;
+
+        while (opModeIsActive() && timer.seconds() < timeoutSeconds) {
+            aimer.update();
+            boolean onTarget = aimer.aim();
+            updateLights();
+            aimer.showStatus();
+            telemetry.update();
+
+            // make sure that the turret has been on target for a few ms, to avoid bad readings
+            if (!onTarget) {
+                onTargetSince = -1;                 // drifted off: start the settle wait over
+            } else if (onTargetSince < 0) {
+                onTargetSince = timer.seconds();    // just came on target
+            } else if (timer.seconds() - onTargetSince >= Aimer.AIM_SETTLE_TIME) {
+                aimed = true;                       // stayed on target long enough
+                break;
+            }
+        }
+
+        aimer.stopTurret();
+        return aimed;
+    }
+
+    /**
+     * For autons: turn the turret to a position in ticks from straight forward (0), keeping the
+     * LEDs and telemetry current while it turns. The turret is stopped (braked where it is) when
+     * this returns, either way.
+     *
+     * @return true if it got there, false if it timed out (e.g. blocked by a soft limit) or
+     *         STOP was pressed
+     */
+    protected boolean turnTurretTo(int targetTicks, double timeoutSeconds) {
+        ElapsedTime timer = new ElapsedTime();
+        boolean there = false;
+
+        while (opModeIsActive() && timer.seconds() < timeoutSeconds) {
+            aimer.update();
+            there = aimer.turnTurretTo(targetTicks);
+            updateLights();
+            aimer.showStatus();
+            telemetry.update();
+            if (there) break;
+        }
+
+        aimer.stopTurret();
+        return there;
+    }
+
 }
