@@ -19,6 +19,7 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
 
     static final double FAST_DRIVE_POWER = 1.0;
     static final double SLOW_DRIVE_POWER = 0.3;
+    static final double INTAKE_POWER = 1.0;
 
     static final double LAUNCHER_TARGET_VELOCITY = 1250;
 
@@ -36,8 +37,8 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
         config();
         drive.setUsePid(true);
 
-        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, START_X, START_Y,
-                AngleUnit.DEGREES, START_HEADING));
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, START1_X, START1_Y,
+                AngleUnit.DEGREES, START1_HEADING));
 
         // The turret starts turned to the side, not facing forward. Tell the aimer where it is
         // so ticks, soft limits and turnTurretTo() all count from straight forward.
@@ -71,9 +72,10 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
 
         // Shoot even if aiming fails: the turret is probably close enough.
         aimFor(AIM_TIMEOUT);
-        shoot();
+        shoot(LAUNCHER_TIMEOUT, FEED_TIME_MS);
 
-        // get ready to scoop
+        // get ready to scoop, intake running
+        intake.setPower(INTAKE_POWER);
         drive.driveTo(GARDEN_START_X, GARDEN_START_Y, GARDEN_START_HEADING, FAST_DRIVE_POWER);
         drive.showPose();
 
@@ -85,14 +87,16 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
         drive.driveTo(WAYPOINT1_X, WAYPOINT1_Y, WAYPOINT1_HEADING, FAST_DRIVE_POWER);
         drive.showPose();
 
+        // Keep the intake running on the way so balls finish coming in.
         drive.driveTo(SHOOT2_X, SHOOT2_Y, SHOOT2_HEADING, FAST_DRIVE_POWER, 0.8, 8.0);
         drive.showPose();
+        intake.setPower(0);
 
         // Only shoot if we can aim at the hive. If we missed shot 1 the hive won't tip, so
         // there's no point waiting longer than AIM_TIMEOUT; if it did tip, it should be done
         // by the time we get back from the garden.
         if (aimFor(AIM_TIMEOUT)) {
-            shoot();
+            shoot(LAUNCHER_TIMEOUT, FEED_TIME_MS);
         }
 
         // park
@@ -104,17 +108,5 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
 
         drive.showPose();
         sleep(3000); // don't need this prolly
-    }
-
-    /**
-     * Set the launcher velocity for how far away the hive is (if we can see it), wait for the
-     * launcher to get up to speed, then run the feeder long enough to shoot.
-     */
-    private void shoot() {
-        if (aimer.hasTarget()) launcher.setTargetVelocityForDistance(aimer.getDistanceInches());
-        waitForLauncher(LAUNCHER_TIMEOUT);
-        feeder.setPower(1.0); // feeder on
-        sleep(FEED_TIME_MS);
-        feeder.setPower(0);   // feeder off
     }
 }

@@ -180,6 +180,19 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
     }
 
     /**
+     * For autons: set the launcher velocity for how far away the hive is (if we can see it), wait
+     * for the launcher to get up to speed, then run the feeder long enough to shoot.
+     * Call right after aimFor(), which leaves the latest Limelight reading in the aimer.
+     */
+    protected void shoot(double launcherTimeoutSeconds, long feedTimeMs) {
+        if (aimer.hasTarget()) launcher.setTargetVelocityForDistance(aimer.getDistanceInches());
+        waitForLauncher(launcherTimeoutSeconds);
+        feeder.setPower(1.0); // feeder on
+        sleep(feedTimeMs);
+        feeder.setPower(0);   // feeder off
+    }
+
+    /**
      * For autons: turn the turret to a position in ticks from straight forward (0), keeping the
      * LEDs and telemetry current while it turns. The turret is stopped (braked where it is) when
      * this returns, either way.
