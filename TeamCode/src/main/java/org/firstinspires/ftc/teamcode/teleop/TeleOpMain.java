@@ -19,7 +19,11 @@ public abstract class TeleOpMain extends GreenBotBaseOpMode {
     private final double INTAKE_POWER = 1.0;
     private final double FEEDER_POWER = 1.0;
 
-    private final double SPEED_FACTOR = 0.5;
+    private final double DEFAULT_SPEED_FACTOR = 0.6;
+    private final double SPEED_INCREMENT = 0.05;
+    private final double MIN_SPEED_FACTOR = 0.2;   // lowest d-pad speed, so the robot can't get stuck at 0
+    private final double MAX_SPEED_FACTOR = 1.0;
+    private double speedFactor = DEFAULT_SPEED_FACTOR;
 
     private final double TURRET_NUDGE_POWER = 0.25;
     private final double TURRET_ALIGN_POWER = 0.15;     // slower d-pad nudge while holding Guide
@@ -57,9 +61,21 @@ public abstract class TeleOpMain extends GreenBotBaseOpMode {
             /////////////////////////
             // handle driving - driver 1
             /////////////////////////
-            double forward = -gamepad1.left_stick_y * SPEED_FACTOR;
-            double strafe = gamepad1.left_stick_x * SPEED_FACTOR;
-            double turn = -gamepad1.right_stick_x * SPEED_FACTOR;
+
+            if (gamepad1.dpadLeftWasPressed()) {
+                speedFactor -= SPEED_INCREMENT;
+            }
+            if (gamepad1.dpadRightWasPressed()) {
+                speedFactor += SPEED_INCREMENT;
+            }
+
+            // Keep the speed between MIN_SPEED_FACTOR and MAX_SPEED_FACTOR.
+            speedFactor = Math.min(speedFactor, MAX_SPEED_FACTOR);
+            speedFactor = Math.max(speedFactor, MIN_SPEED_FACTOR);
+
+            double forward = -gamepad1.left_stick_y * speedFactor;
+            double strafe = gamepad1.left_stick_x * speedFactor;
+            double turn = -gamepad1.right_stick_x * speedFactor;
             drive.drive(forward, strafe, turn);
 
             /////////////////////////
@@ -170,6 +186,7 @@ public abstract class TeleOpMain extends GreenBotBaseOpMode {
                 launcher.showStatus();
                 aimer.showStatus();
                 drive.showPose();
+                telemetry.addData("Drive speed", speedFactor);
             }
             telemetry.update();
         }
@@ -188,6 +205,7 @@ public abstract class TeleOpMain extends GreenBotBaseOpMode {
         telemetry.addData("L Bumper", "Intake ON/OFF (Toggle)");
         telemetry.addData("R Bumper", "Intake Reverse (Toggle)");
         telemetry.addData("DPad Up/Down", "Wedge Up/Down");
+        telemetry.addData("DPad L/R", "Drive Speed -/+");
         telemetry.addData("", "");
 
         telemetry.addData("DRIVER 2", "Controls");

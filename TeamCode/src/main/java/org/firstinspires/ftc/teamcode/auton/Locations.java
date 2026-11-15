@@ -32,9 +32,6 @@ public interface Locations {
     public static final double SHOOT2_Y = -16;
     public static final double SHOOT2_HEADING = 0;
 
-    // Left flower: harvest by driving from START to END.
-    // TODO: PLACEHOLDERS -- fill in from the notebook. Until then they equal SHOOT2, so the
-    // robot just stays put instead of driving somewhere random.
     public static final double LEFT_FLOWER_START_X = -45.0;
     public static final double LEFT_FLOWER_START_Y = -28.0;
     public static final double LEFT_FLOWER_START_HEADING = 180;
@@ -43,9 +40,8 @@ public interface Locations {
     public static final double LEFT_FLOWER_END_Y = -28;
     public static final double LEFT_FLOWER_END_HEADING = 180;
 
-    // TODO: PLACEHOLDER -- fill in from the notebook (these are Auton2's old park spot)
-    public static final double PARK_LEFT_X = -52;
-    public static final double PARK_LEFT_Y = -61;
+    public static final double PARK_LEFT_X = -54;
+    public static final double PARK_LEFT_Y = -59;
     public static final double PARK_LEFT_HEADING = 90;
 
     public static final double PARK_RIGHT_X = -24;

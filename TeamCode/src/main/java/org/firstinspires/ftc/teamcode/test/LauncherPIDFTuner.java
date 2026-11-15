@@ -18,21 +18,23 @@ import java.util.Locale;
 /**
  * Tune the launcher's velocity PIDF by trying settings and comparing how the flywheel spins up.
  *
- * During INIT (and between runs), pick P, I, D, F, the target velocity, the "at speed" band and
- * how long each run lasts. Each run starts from a stopped flywheel, jumps to the target, records
- * the velocity as fast as it can, then stops the flywheel and reports:
+ * During INIT (and between runs), pick P, I, D, F, the target velocity, the "at speed" band, how
+ * long it must stay in the band to count as settled, and the longest a run may last. Each run
+ * starts from a stopped flywheel and jumps to the target. It keeps going until the velocity has
+ * stayed inside the band for "Stable for" seconds in a row (or "Max run" runs out), then stops the
+ * flywheel and reports:
  *
  *   Reached band     first time the velocity got within the band (when the LED would go green)
  *   Reached target   first time the velocity got all the way to the target
- *   Overshoot        how far the first peak went past the target
- *   Oscillations     swings past the band (above or below) after first reaching the target;
- *                    the first overshoot counts if it leaves the band. 0 = never left the band.
- *   Stable           when it entered the band for the last time and stayed there to the end
- *                    (needs at least MIN_STABLE_TIME in the band at the end of the run)
- *   Last 1.0 s       average / min / max velocity at the end of the run
+ *   Crossings        every time the velocity crossed the target and went out of the band on
+ *                    the other side, with how far past it got before turning around (the
+ *                    first one is the overshoot). Wobbles that stay inside the band don't count.
+ *   Settled          when it entered the band for the last time and then stayed there
+ *   Last N s         average / min / max velocity at the end of the run
  *
- * Results are also written to the robot log with the tag "PIDFTune". The settings here are only
- * for this OpMode: copy the ones you like into Launcher.java (KP, KI, KD, KF).
+ * Results are also written to the robot log with the tag "PIDFTune" (all crossings, even the ones
+ * that don't fit on the screen). The settings here are only for this OpMode: copy the ones you
+ * like into Launcher.java (KP, KI, KD, KF).
  *
  * Gamepad 1:  D-pad up/down = pick a setting, left/right = change it,
  *             LB / RB = make the step 10x smaller / larger, A = run again (after START).
@@ -41,31 +43,46 @@ import java.util.Locale;
 public class LauncherPIDFTuner extends GreenBotBaseOpMode {
 
     // ---------------- Settings you change from the gamepad ----------------
-    private static final int P = 0, I = 1, D = 2, F = 3, TARGET = 4, BAND = 5, RUN_TIME = 6;
+    private static final int P = 0, I = 1, D = 2, F = 3, TARGET = 4, BAND = 5, HOLD = 6, MAX_RUN = 7;
     private static final String[] NAMES =
-            {"P", "I", "D", "F", "Target", "Band +/-", "Run time (s)"};
+            {"P", "I", "D", "F", "Target", "Band +/-", "Stable for (s)", "Max run (s)"};
 
     // Start from what Launcher.java uses now.
     private final double[] value = {
             Launcher.KP, Launcher.KI, Launcher.KD, Launcher.KF,
-            Launcher.SHOOT_VELOCITY, Launcher.AT_SPEED_TOLERANCE, 4.0};
-    private final double[] step = {1, 0.1, 0.1, 0.05, 10, 5, 0.5};
-    private final double[] min = {0, 0, 0, 0, Launcher.MIN_TARGET_VELOCITY, 5, 1};
-    private final double[] max = {200, 50, 50, 50, Launcher.MAX_TARGET_VELOCITY, 200, 15};
+            Launcher.SHOOT_VELOCITY, Launcher.AT_SPEED_TOLERANCE, 2.0, 30};
+    private final double[] step = {1, 0.1, 0.1, 0.05, 10, 5, 0.5, 5};
+    private final double[] min = {0, 0, 0, 0, Launcher.MIN_TARGET_VELOCITY, 5, 0.5, 5};
+    private final double[] max = {200, 50, 50, 50, Launcher.MAX_TARGET_VELOCITY, 200, 10, 60};
     private int selected = P;
 
     // ---------------- Test settings ----------------
     private static final double STOPPED_VELOCITY = 20;  // ticks/s; below this counts as stopped
     private static final double SPIN_DOWN_TIMEOUT = 15; // s; start anyway if it takes longer
-    private static final double MIN_STABLE_TIME = 0.5;  // s in the band at the end to be "stable"
-    private static final double END_WINDOW = 1.0;       // s; the "last 1.0 s" numbers
-    private static final int MAX_SAMPLES = 10000;
+    private static final int MAX_SAMPLES = 50000;       // plenty for a 60 s run
+    private static final int CROSSINGS_SHOWN = 8;       // the rest go to the robot log only
     private static final int HISTORY_SHOWN = 5;
 
     // ---------------- State ----------------
     private final double[] sampleTime = new double[MAX_SAMPLES];      // s since the run started
     private final double[] sampleVelocity = new double[MAX_SAMPLES];  // ticks/s
     private int sampleCount = 0;
+
+    /** One trip to one side of the target: when it crossed, and how far past it got. */
+    private static class Crossing {
+        final double time;   // s; when it crossed the target
+        final boolean up;    // true = crossed going up (an overshoot), false = going down
+        double farthest = 0; // ticks/s past the target before it turned around (+ above, - below)
+
+        Crossing(double time, boolean up) {
+            this.time = time;
+            this.up = up;
+        }
+
+        void update(double error) {
+            if (up ? error > farthest : error < farthest) farthest = error;
+        }
+    }
 
     private VoltageSensor battery;
     private int runNumber = 0;
@@ -110,6 +127,8 @@ public class LauncherPIDFTuner extends GreenBotBaseOpMode {
     private void runTest() {
         runNumber++;
         double target = value[TARGET];
+        double band = value[BAND];
+        double hold = value[HOLD];
 
         // 1. Let the flywheel stop, so every run starts the same way.
         launcher.stop();
@@ -132,108 +151,101 @@ public class LauncherPIDFTuner extends GreenBotBaseOpMode {
                 new PIDFCoefficients(value[P], value[I], value[D], value[F]));
         double volts = battery.getVoltage();
 
-        // 3. Jump to the target and record the velocity as fast as we can. Telemetry only every
-        //    0.2 s so it doesn't slow down the recording.
+        // 3. Jump to the target and record the velocity as fast as we can, watching for crossings,
+        //    until it has stayed in the band for `hold` seconds. Telemetry only every 0.2 s so it
+        //    doesn't slow down the recording.
         sampleCount = 0;
+        double bandTime = -1, targetTime = -1;
+        List<Crossing> crossings = new ArrayList<>();
+        Crossing current = null;     // the crossing whose swing is still going on
+        double lastSignChange = 0;   // when the velocity last went from below to above the target or back
+        double previousError = -1;
+        double inBandSince = -1;     // when it last came into the band; -1 = outside it now
+        double settledAt = -1;       // when it came into the band for the last time
         double lastShown = -1;
         ElapsedTime clock = new ElapsedTime();
         launcher.setTargetVelocity(target);
-        while (opModeIsActive() && clock.seconds() < value[RUN_TIME] && sampleCount < MAX_SAMPLES) {
+
+        while (opModeIsActive() && clock.seconds() < value[MAX_RUN] && sampleCount < MAX_SAMPLES) {
             double t = clock.seconds();
             double v = launcherMotor.getVelocity();
+            double error = v - target;   // + = too fast, - = too slow
             sampleTime[sampleCount] = t;
             sampleVelocity[sampleCount] = v;
             sampleCount++;
+
+            if (bandTime < 0 && error >= -band) bandTime = t;
+            if ((error >= 0) != (previousError >= 0)) lastSignChange = t;
+            previousError = error;
+
+            // Crossings. The first one is when it first reaches the target. After that, a crossing
+            // only counts once the velocity goes all the way out of the band on the other side, so
+            // noise wobbling around the target doesn't count; its time is when it actually
+            // crossed the target on the way.
+            if (current == null) {
+                if (error >= 0) {
+                    targetTime = t;
+                    current = new Crossing(t, true);
+                    crossings.add(current);
+                }
+            } else if (current.up && error < -band) {
+                current = new Crossing(lastSignChange, false);
+                crossings.add(current);
+            } else if (!current.up && error > band) {
+                current = new Crossing(lastSignChange, true);
+                crossings.add(current);
+            }
+            if (current != null) current.update(error);
+
+            // Settled: inside the band for `hold` seconds in a row.
+            if (Math.abs(error) <= band) {
+                if (inBandSince < 0) inBandSince = t;
+                if (t - inBandSince >= hold) {
+                    settledAt = inBandSince;
+                    break;
+                }
+            } else {
+                inBandSince = -1;
+            }
 
             if (t - lastShown >= 0.2) {
                 lastShown = t;
                 telemetry.addLine(String.format(Locale.US,
                         "Run #%d RUNNING   %.1f s   %.0f / %.0f ticks/s", runNumber, t, v, target));
+                telemetry.addLine(String.format(Locale.US, "   crossings so far: %d   %s",
+                        crossings.size(),
+                        inBandSince >= 0 ? String.format(Locale.US, "in band for %.1f s", t - inBandSince)
+                                : "outside the band"));
                 telemetry.update();
             }
         }
         launcher.stop();
 
-        if (sampleCount >= 2) analyze(volts);
+        if (sampleCount >= 2) {
+            makeReport(volts, bandTime, targetTime, crossings, settledAt,
+                    sampleCount >= MAX_SAMPLES);
+        }
         clearButtonPresses(); // ignore buttons pressed during the run
     }
 
     // ---------------- Working out the results ----------------
 
-    private void analyze(double volts) {
+    private void makeReport(double volts, double bandTime, double targetTime,
+                            List<Crossing> crossings, double settledAt, boolean bufferFull) {
         int n = sampleCount;
         double target = value[TARGET];
         double band = value[BAND];
+        double hold = value[HOLD];
         double endTime = sampleTime[n - 1];
 
-        // Reached band / reached target: the first sample at or above each.
-        double bandTime = -1, targetTime = -1;
-        int targetIndex = -1;
         double highest = sampleVelocity[0];
-        for (int k = 0; k < n; k++) {
-            double v = sampleVelocity[k];
-            highest = Math.max(highest, v);
-            if (bandTime < 0 && v >= target - band) bandTime = sampleTime[k];
-            if (targetIndex < 0 && v >= target) {
-                targetTime = sampleTime[k];
-                targetIndex = k;
-            }
-        }
+        for (int k = 0; k < n; k++) highest = Math.max(highest, sampleVelocity[k]);
 
-        // First overshoot: the highest point after reaching the target, until it drops back
-        // below the target (by more than half the band, so a little noise doesn't end it early).
-        double overshoot = 0;
-        if (targetIndex >= 0) {
-            double peak = target;
-            for (int k = targetIndex; k < n; k++) {
-                double v = sampleVelocity[k];
-                if (v > peak) peak = v;
-                if (v < target - band / 2) break;
-            }
-            overshoot = peak - target;
-        }
-
-        // Oscillations: after reaching the target, count each swing out of the band. After a
-        // swing above, another one above only counts once the velocity has crossed back below
-        // the target (by half the band), and the same the other way round. That way one real
-        // swing counts once, even when noise makes it wobble in and out at the edge of the band.
-        int swings = 0;
-        if (targetIndex >= 0) {
-            boolean canCountAbove = true, canCountBelow = true;
-            for (int k = targetIndex; k < n; k++) {
-                double error = sampleVelocity[k] - target;
-                if (error > band && canCountAbove) {
-                    swings++;
-                    canCountAbove = false;
-                }
-                if (error < -band && canCountBelow) {
-                    swings++;
-                    canCountBelow = false;
-                }
-                if (error < -band / 2) canCountAbove = true;  // crossed back below the target
-                if (error > band / 2) canCountBelow = true;   // crossed back above the target
-            }
-        }
-
-        // Stable: the last time it entered the band and then stayed in it to the end.
-        int lastOutside = -1;
-        for (int k = n - 1; k >= 0; k--) {
-            if (Math.abs(sampleVelocity[k] - target) > band) {
-                lastOutside = k;
-                break;
-            }
-        }
-        double stableTime = -1;
-        if (lastOutside < n - 1) {
-            double enteredBand = sampleTime[lastOutside + 1];
-            if (endTime - enteredBand >= MIN_STABLE_TIME) stableTime = enteredBand;
-        }
-
-        // End of the run: average, min and max over the last END_WINDOW seconds.
+        // End of the run: average, min and max over the last `hold` seconds.
         double sum = 0, low = Double.MAX_VALUE, high = -Double.MAX_VALUE;
         int count = 0;
         for (int k = 0; k < n; k++) {
-            if (sampleTime[k] < endTime - END_WINDOW) continue;
+            if (sampleTime[k] < endTime - hold) continue;
             double v = sampleVelocity[k];
             sum += v;
             low = Math.min(low, v);
@@ -242,9 +254,11 @@ public class LauncherPIDFTuner extends GreenBotBaseOpMode {
         }
         double average = sum / count;
         double msPerSample = 1000 * endTime / (n - 1);
+        double overshoot = crossings.isEmpty() ? 0 : crossings.get(0).farthest;
 
         // ---------- Build the report ----------
         report.clear();
+        List<String> logOnly = new ArrayList<>();
         String gains = String.format(Locale.US, "P %s  I %s  D %s  F %s",
                 fmt(value[P]), fmt(value[I]), fmt(value[D]), fmt(value[F]));
         report.add(String.format(Locale.US, "RESULTS run #%d:  %s", runNumber, gains));
@@ -255,42 +269,59 @@ public class LauncherPIDFTuner extends GreenBotBaseOpMode {
         report.add("Reached target (" + fmt(target) + "):  "
                 + (targetTime >= 0 ? secs(targetTime)
                         : String.format(Locale.US, "never (highest %.0f)", highest)));
-        report.add("First overshoot:  " + (targetIndex < 0 ? "-- (never reached target)"
-                : String.format(Locale.US, "+%.0f ticks/s (%.1f%%)", overshoot, 100 * overshoot / target)));
-        report.add("Oscillations:  " + (targetIndex < 0 ? "--"
-                : swings + "  (swings out of the band after reaching target)"));
-        report.add("Stable (stays in band):  " + (stableTime >= 0 ? secs(stableTime)
-                : "NOT stable by the end of the run"));
+
+        report.add("Crossings of the target:  " + crossings.size());
+        for (int k = 0; k < crossings.size(); k++) {
+            Crossing c = crossings.get(k);
+            String line = String.format(Locale.US, "   %d. %s at %s, then %s %.0f",
+                    k + 1, c.up ? "up  " : "down", secs(c.time),
+                    c.up ? "peaked" : "dipped", c.farthest);
+            if (k < CROSSINGS_SHOWN) report.add(line);
+            else logOnly.add(line);
+        }
+        if (!logOnly.isEmpty()) {
+            report.add("   ... " + logOnly.size() + " more in the robot log (PIDFTune)");
+        }
+
+        if (settledAt >= 0) {
+            report.add(String.format(Locale.US, "Settled (in band %.1f s):  %s",
+                    hold, secs(settledAt)));
+        } else {
+            report.add(String.format(Locale.US, "Settled:  NO -- %s after %.1f s",
+                    bufferFull ? "ran out of sample space" : "stopped", endTime));
+        }
         report.add(String.format(Locale.US, "Last %.1f s:  avg %.0f, min %.0f, max %.0f",
-                END_WINDOW, average, low, high));
+                hold, average, low, high));
         report.add(String.format(Locale.US, "Samples:  %d, one every %.1f ms", n, msPerSample));
 
         // A nudge in the right direction for the most obvious problems.
-        if (targetIndex < 0) {
+        if (targetTime < 0) {
             report.add("HINT: never reached the target -- raise F (or I).");
-        } else if (swings >= 3) {
-            report.add("HINT: keeps swinging -- lower P (or I).");
-        } else if (stableTime < 0) {
-            report.add("HINT: not stable yet -- try a longer run time, or see the last second below.");
+        } else if (crossings.size() >= 4) {
+            report.add("HINT: keeps swinging -- lower I first, then P.");
         } else if (overshoot > 2 * band) {
-            report.add("HINT: big overshoot -- lower P or I.");
-        }
-        if (high - low > 2 * band) {
-            report.add("NOTE: the last second covers more than the whole band "
-                    + "(still swinging, or noisy readings).");
+            report.add("HINT: big overshoot -- lower I or P (or F if it overshoots with I = 0).");
+        } else if (settledAt < 0) {
+            report.add("HINT: never settled -- if it hovers just outside the band, the band may be"
+                    + " tighter than the velocity noise.");
         }
 
         // One line for the history list, newest first.
         history.add(0, String.format(Locale.US,
-                "#%d %s | band %s, target %s, over +%.0f, osc %s, stable %s",
+                "#%d %s | target %s, over +%.0f, crossings %d, settled %s",
                 runNumber, gains,
-                bandTime >= 0 ? secs(bandTime) : "never",
                 targetTime >= 0 ? secs(targetTime) : "never",
                 overshoot,
-                targetIndex >= 0 ? String.valueOf(swings) : "--",
-                stableTime >= 0 ? secs(stableTime) : "NO"));
+                crossings.size(),
+                settledAt >= 0 ? secs(settledAt) : "NO"));
 
-        for (String line : report) RobotLog.ii("PIDFTune", line);
+        for (String line : report) {
+            if (line.startsWith("   ... ")) {
+                for (String extra : logOnly) RobotLog.ii("PIDFTune", extra);
+            } else {
+                RobotLog.ii("PIDFTune", line);
+            }
+        }
     }
 
     // ---------------- Settings screen ----------------
