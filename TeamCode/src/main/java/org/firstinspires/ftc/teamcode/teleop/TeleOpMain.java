@@ -1,13 +1,18 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.base.GreenBotBaseOpMode;
 import org.firstinspires.ftc.teamcode.robot.Launcher;
 
-@TeleOp(name = "TeleOp Main", group = "Main")
-public class TeleOpMain extends GreenBotBaseOpMode {
+/**
+ * The TeleOp itself. It doesn't show up on the Driver Station on its own: drivers pick
+ * "TeleOp Red" or "TeleOp Blue" (TeleOpRed / TeleOpBlue), which only say which alliance it is.
+ */
+public abstract class TeleOpMain extends GreenBotBaseOpMode {
+
+    /** True for the blue alliance, false for red. Decides which hive tags the aimer looks for. */
+    protected abstract boolean onBlueAlliance();
 
     private final double LAUNCHER_VELOCITY_STEP = 10;
 
@@ -34,9 +39,11 @@ public class TeleOpMain extends GreenBotBaseOpMode {
         // If it isn't lined up, driver 2 can re-zero it during the match (hold Guide, see below).
         aimer.resetTurretEncoder();
 
-        // Pick the alliance during INIT; the LEDs show the alliance color until START.
+        // The alliance comes from which TeleOp was picked; the LEDs show it until START.
+        aimer.setBlueAlliance(onBlueAlliance());
+        showAllianceLights();
         while (opModeInInit()) {
-            selectAlliance();
+            telemetry.addData("Alliance", aimer.isBlueAlliance() ? "BLUE" : "RED");
             helpMenu();
             telemetry.update();
         }
