@@ -79,7 +79,7 @@ public class S1_G_S2_PR extends GreenBotBaseOpMode implements Locations {
         drive.showPose();
 
         // scoop!
-        drive.driveTo(GARDEN_END_X, GARDEN_END_Y, GARDEN_END_HEADING, SLOW_DRIVE_POWER);
+        drive.driveTo(GARDEN_END_X, GARDEN_END_Y, GARDEN_END_HEADING, SLOW_DRIVE_POWER, 0.5, 3.0 );
         drive.showPose();
 
         // drive to waypoint
