@@ -25,8 +25,13 @@ import java.util.List;
  *     else aimer.stopTurret();
  * </pre>
  *
- * Setup: call {@link #resetTurretEncoder()} once, while the turret is lined up facing straight
- * forward (that position is 0), then {@link #start()} when the match starts.
+ * Setup: tell the aimer where the turret is, in ticks from straight forward (0), then call
+ * {@link #start()} when the match starts. Either:
+ * <ul>
+ *   <li>line the turret up facing straight forward and call {@link #resetTurretEncoder()}, or</li>
+ *   <li>(autons) start with the turret turned to the side and call {@link #setTurretTicks(int)}
+ *       with where it is, e.g. {@code setTurretTicks(TURRET_AUTON_START_TICKS)}.</li>
+ * </ul>
  */
 public class Aimer {
 
@@ -48,11 +53,24 @@ public class Aimer {
     public static double TURRET_MAX_POWER = 0.8;
     public static double TURRET_AIM_DIRECTION = 1;   // flip to -1 if the turret turns away
     public static double AIM_TOLERANCE_DEG = 1.5;    // "on target" if |tx| is below this
+    public static double AIM_SETTLE_TIME = 0.1;      // s on target before aimFor() counts it as aimed
 
-    // Soft limits in encoder ticks, measured from the forward-facing start (0). They're
-    // symmetric, so 0 must be the middle of the turret's safe travel (as far as the wires allow).
-    public static int TURRET_MIN_TICKS = -428;
-    public static int TURRET_MAX_TICKS = 428;
+    // Soft limits in encoder ticks, measured from straight forward (0), as far as the wires
+    // allow. They don't have to be symmetric.
+    // TODO: re-measure now that the turret faces forward (it can turn farther each way). Use
+    // Limelight Test Green: line up forward, INIT, d-pad nudge to each wire limit, read ticks.
+    public static int TURRET_MIN_TICKS = -1000;
+    public static int TURRET_MAX_TICKS = 1000;
+
+    // Where the turret sits at the start of auton (turned 90 degrees to one side), in ticks
+    // from straight forward. Keep the sign: it says which side. 0 = not measured yet.
+    // TODO: measure with Limelight Test Green (line up forward, INIT, nudge to the start
+    // position, read "Turret ticks").
+    public static int TURRET_AUTON_START_TICKS = 1000;
+
+    // turnTurretTo(): power per tick of error, and how close counts as "there"
+    public static double TURRET_TURN_KP = 0.005;
+    public static int TURRET_TURN_TOLERANCE_TICKS = 10;
 
     public static double MAX_STALENESS_MS = 100;     // ignore results older than this
     private static final double METERS_TO_INCHES = 39.3701;
@@ -62,6 +80,7 @@ public class Aimer {
     private final Limelight3A limelight;
     private final Telemetry telemetry;
 
+    private int tickOffset = 0;        // added to the motor's encoder count; see setTurretTicks()
     private boolean blueAlliance = true;
     private HiveSighting hive = null;  // from the latest update(); null = no hive in view
     private boolean onTarget = false;
@@ -91,6 +110,17 @@ public class Aimer {
     public void resetTurretEncoder() {
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        tickOffset = 0;
+    }
+
+    /**
+     * Say where the turret is right now, in ticks from straight forward. The motor's encoder can
+     * only be reset to 0, so this keeps an offset in software instead; from here on
+     * getTurretTicks(), the soft limits and turnTurretTo() all count from straight forward.
+     * Use it when the turret doesn't start facing forward (autons).
+     */
+    public void setTurretTicks(int ticks) {
+        tickOffset = ticks - turret.getCurrentPosition();
     }
 
     public void setBlueAlliance(boolean blue) {
@@ -179,6 +209,36 @@ public class Aimer {
                 || (power < 0 && ticks <= TURRET_MIN_TICKS);
     }
 
+    /**
+     * Turn the turret toward a position in ticks (0 = straight forward), slowing down as it gets
+     * close, and never past the soft limits. Call once per loop until it returns true.
+     *
+     * @return true once within TURRET_TURN_TOLERANCE_TICKS of the target (turret stopped)
+     */
+    public boolean turnTurretTo(int targetTicks) {
+        int error = targetTicks - getTurretTicks();
+        onTarget = false;
+
+        if (Math.abs(error) <= TURRET_TURN_TOLERANCE_TICKS) {
+            turret.setPower(0);
+            atLimit = false;
+            status = "at " + targetTicks + " ticks";
+            return true;
+        }
+
+        // Positive power counts the encoder up, so the sign of the error is the direction.
+        double power = Range.clip(TURRET_TURN_KP * Math.abs(error),
+                TURRET_MIN_POWER, TURRET_MAX_POWER) * Math.signum(error);
+
+        atLimit = wouldPassLimit(power);
+        if (atLimit) power = 0;
+        turret.setPower(power);
+
+        status = atLimit ? "AT LIMIT - can't reach " + targetTicks + " ticks"
+                : String.format("turning to %d ticks, %.2f", targetTicks, power);
+        return false;
+    }
+
     /** Stop the turret (it brakes and holds where it is). */
     public void stopTurret() {
         turret.setPower(0);
@@ -233,8 +293,9 @@ public class Aimer {
         return hive == null ? 0 : hive.tagCount;
     }
 
+    /** Turret position in ticks from straight forward (0). */
     public int getTurretTicks() {
-        return turret.getCurrentPosition();
+        return turret.getCurrentPosition() + tickOffset;
     }
 
     public boolean isPastLimit() {

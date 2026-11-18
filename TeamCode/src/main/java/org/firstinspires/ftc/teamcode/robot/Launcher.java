@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  *
  * Typical use:
  * <pre>
- *     launcher.setTargetVelocity(1250);      // start spinning up
+ *     launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY);  // start spinning up
  *     ...
  *     if (launcher.isAtSpeed()) feed();      // only shoot once it's up to speed
  *     ...
@@ -27,7 +27,11 @@ public class Launcher {
     // ---------------- Tuning / configuration ----------------
     public static double MIN_TARGET_VELOCITY = 200;   // ticks/s
     public static double MAX_TARGET_VELOCITY = 2000;  // ticks/s
-    public static double AT_SPEED_TOLERANCE = 50;     // "at speed" if within this many ticks/s
+    public static double AT_SPEED_TOLERANCE = 30;     // "at speed" if within this many ticks/s
+
+    // The velocity that scores. Calibration found 1160 works from every spot we tried; the window
+    // is narrow (1140 falls short, 1180 goes long), so AT_SPEED_TOLERANCE has to stay well inside it.
+    public static double SHOOT_VELOCITY = 1160;       // ticks/s
 
     // Velocity PIDF for the motor controller. Adjust these for spinup and recovery.
     public static double KP = 40;
@@ -44,6 +48,7 @@ public class Launcher {
     public Launcher(DcMotorEx motor, Telemetry telemetry) {
         this.motor = motor;
         this.telemetry = telemetry;
+
 
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motor.setPIDFCoefficients(

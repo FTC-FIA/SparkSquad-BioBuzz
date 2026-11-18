@@ -33,6 +33,11 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
     protected double WEDGE_UP = 0.65;
     protected double WEDGE_DOWN = 0.25;
 
+    // Feeder pattern for shooting in auton (see shoot()): run, back up briefly, run again.
+    protected static final long FEED_FIRST_MS = 2000;
+    protected static final long FEED_REVERSE_MS = 500;
+    protected static final long FEED_SECOND_MS = 2000;
+
     /**
      * Configures the hardware that all OpModes using this robot share.
      * Call this first thing on startup.
@@ -139,6 +144,96 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
             telemetry.update();
         }
         return false;
+    }
+
+    /**
+     * For autons: aim the turret at the hive until it has stayed on target for
+     * Aimer.AIM_SETTLE_TIME, keeping the LEDs and telemetry current while aiming. The turret is
+     * stopped (braked where it is) when this returns, either way.
+     *
+     * Waiting for it to stay on target matters because aim() says "on target" the moment tx is
+     * inside the tolerance, even if the turret is still coasting through.
+     *
+     * @return true if the turret is aimed, false if it timed out (no hive in view, stuck at a
+     *         soft limit, or never settled) or STOP was pressed
+     */
+    protected boolean aimFor(double timeoutSeconds) {
+        ElapsedTime timer = new ElapsedTime();
+        double onTargetSince = -1; // when the turret last came on target; -1 = not on target
+        boolean aimed = false;
+
+        while (opModeIsActive() && timer.seconds() < timeoutSeconds) {
+            aimer.update();
+            boolean onTarget = aimer.aim();
+            updateLights();
+            aimer.showStatus();
+            launcher.showStatus();
+            telemetry.update();
+
+            // make sure that the turret has been on target for a few ms, to avoid bad readings
+            if (!onTarget) {
+                onTargetSince = -1;                 // drifted off: start the settle wait over
+            } else if (onTargetSince < 0) {
+                onTargetSince = timer.seconds();    // just came on target
+            } else if (timer.seconds() - onTargetSince >= Aimer.AIM_SETTLE_TIME) {
+                aimed = true;                       // stayed on target long enough
+                break;
+            }
+        }
+
+        aimer.stopTurret();
+        return aimed;
+    }
+
+    /**
+     * For autons: wait for the launcher to get up to speed, then shoot: run the feeder for
+     * FEED_FIRST_MS, reverse it for FEED_REVERSE_MS, then run it again for FEED_SECOND_MS.
+     * Start the launcher first with launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY).
+     * The launcher's velocity stays on telemetry the whole time, so you can watch it drop and
+     * recover as each ball goes through.
+     */
+    protected void shoot(double launcherTimeoutSeconds) {
+        waitForLauncher(launcherTimeoutSeconds);
+        runFeeder(1.0, FEED_FIRST_MS);     // shoot
+        runFeeder(-1.0, FEED_REVERSE_MS);  // back up
+        runFeeder(1.0, FEED_SECOND_MS);    // shoot the rest
+        feeder.setPower(0);                // feeder off
+    }
+
+    /** Run the feeder at this power for this long, keeping the LEDs and telemetry current. */
+    private void runFeeder(double power, long milliseconds) {
+        feeder.setPower(power);
+        ElapsedTime timer = new ElapsedTime();
+        while (opModeIsActive() && timer.milliseconds() < milliseconds) {
+            updateLights();
+            launcher.showStatus();
+            telemetry.update();
+        }
+    }
+
+    /**
+     * For autons: turn the turret to a position in ticks from straight forward (0), keeping the
+     * LEDs and telemetry current while it turns. The turret is stopped (braked where it is) when
+     * this returns, either way.
+     *
+     * @return true if it got there, false if it timed out (e.g. blocked by a soft limit) or
+     *         STOP was pressed
+     */
+    protected boolean turnTurretTo(int targetTicks, double timeoutSeconds) {
+        ElapsedTime timer = new ElapsedTime();
+        boolean there = false;
+
+        while (opModeIsActive() && timer.seconds() < timeoutSeconds) {
+            aimer.update();
+            there = aimer.turnTurretTo(targetTicks);
+            updateLights();
+            aimer.showStatus();
+            telemetry.update();
+            if (there) break;
+        }
+
+        aimer.stopTurret();
+        return there;
     }
 
 }

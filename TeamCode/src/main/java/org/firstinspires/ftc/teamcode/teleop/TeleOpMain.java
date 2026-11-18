@@ -1,37 +1,53 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.base.GreenBotBaseOpMode;
+import org.firstinspires.ftc.teamcode.robot.Launcher;
 
-@TeleOp(name = "TeleOp Main", group = "Main")
-public class TeleOpMain extends GreenBotBaseOpMode {
+/**
+ * The TeleOp itself. It doesn't show up on the Driver Station on its own: drivers pick
+ * "TeleOp Red" or "TeleOp Blue" (TeleOpRed / TeleOpBlue), which only say which alliance it is.
+ */
+public abstract class TeleOpMain extends GreenBotBaseOpMode {
 
-    private final double INITIAL_LAUNCHER_TARGET_VELOCITY = 1250;
-    private final double LAUNCHER_VELOCITY_STEP = 50;
+    /** True for the blue alliance, false for red. Decides which hive tags the aimer looks for. */
+    protected abstract boolean onBlueAlliance();
+
+    private final double LAUNCHER_VELOCITY_STEP = 10;
 
     private final double INTAKE_POWER = 1.0;
     private final double FEEDER_POWER = 1.0;
 
-    private final double SPEED_FACTOR = 0.5;
+    private final double DEFAULT_SPEED_FACTOR = 0.6;
+    private final double SPEED_INCREMENT = 0.05;
+    private final double MIN_SPEED_FACTOR = 0.2;   // lowest d-pad speed, so the robot can't get stuck at 0
+    private final double MAX_SPEED_FACTOR = 1.0;
+    private double speedFactor = DEFAULT_SPEED_FACTOR;
 
     private final double TURRET_NUDGE_POWER = 0.25;
+    private final double TURRET_ALIGN_POWER = 0.15;     // slower d-pad nudge while holding Guide
+    private final double TURRET_ZERO_HOLD_TIME = 0.5;   // s Guide must be held before release zeroes
 
     private boolean intakeOn = true;
     private boolean wasOnTarget = false;
     private boolean intakeReversed = false;
+    private boolean aligningTurret = false;            // driver 2 is holding Guide
+    private final ElapsedTime alignTimer = new ElapsedTime();
 
     @Override
     public void runOpMode() { // when driver hits INIT
         config();
 
-        // The turret should be lined up facing straight forward before INIT; that becomes 0.
-        // TODO: once an auto moves the turret, skip this when TeleOp follows that auto.
+        // Auton ends with the turret facing straight forward, so that position becomes 0.
+        // If it isn't lined up, driver 2 can re-zero it during the match (hold Guide, see below).
         aimer.resetTurretEncoder();
 
-        // Pick the alliance during INIT; the LEDs show the alliance color until START.
+        // The alliance comes from which TeleOp was picked; the LEDs show it until START.
+        aimer.setBlueAlliance(onBlueAlliance());
+        showAllianceLights();
         while (opModeInInit()) {
-            selectAlliance();
+            telemetry.addData("Alliance", aimer.isBlueAlliance() ? "BLUE" : "RED");
             helpMenu();
             telemetry.update();
         }
@@ -39,15 +55,27 @@ public class TeleOpMain extends GreenBotBaseOpMode {
         waitForStart();
         wedgeServo.setPosition(WEDGE_UP);
         aimer.start();
-        launcher.setTargetVelocity(INITIAL_LAUNCHER_TARGET_VELOCITY);
+        launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY);
 
         while (opModeIsActive()) {
             /////////////////////////
             // handle driving - driver 1
             /////////////////////////
-            double forward = -gamepad1.left_stick_y * SPEED_FACTOR;
-            double strafe = gamepad1.left_stick_x * SPEED_FACTOR;
-            double turn = -gamepad1.right_stick_x * SPEED_FACTOR;
+
+            if (gamepad1.dpadLeftWasPressed()) {
+                speedFactor -= SPEED_INCREMENT;
+            }
+            if (gamepad1.dpadRightWasPressed()) {
+                speedFactor += SPEED_INCREMENT;
+            }
+
+            // Keep the speed between MIN_SPEED_FACTOR and MAX_SPEED_FACTOR.
+            speedFactor = Math.min(speedFactor, MAX_SPEED_FACTOR);
+            speedFactor = Math.max(speedFactor, MIN_SPEED_FACTOR);
+
+            double forward = -gamepad1.left_stick_y * speedFactor;
+            double strafe = gamepad1.left_stick_x * speedFactor;
+            double turn = -gamepad1.right_stick_x * speedFactor;
             drive.drive(forward, strafe, turn);
 
             /////////////////////////
@@ -89,9 +117,32 @@ public class TeleOpMain extends GreenBotBaseOpMode {
             // handle turret - driver 2
             // D-pad L/R nudges (within the soft limits) and overrides auto-aim.
             // Hold Y to auto-aim at the hive.
+            //
+            // Re-zeroing: hold Guide (the center button) and use d-pad L/R to line the turret
+            // up facing straight forward -- this nudge IGNORES the soft limits, since they're
+            // wrong if the zero is. Release Guide and that position becomes forward (0). Guide
+            // has to be held at least TURRET_ZERO_HOLD_TIME, so a quick bump does nothing.
             /////////////////////////
             aimer.update();
-            if (gamepad2.dpad_left || gamepad2.dpad_right) {
+            if (gamepad2.guide) {
+                if (!aligningTurret) {
+                    aligningTurret = true;
+                    alignTimer.reset();
+                }
+                if (gamepad2.dpad_left || gamepad2.dpad_right) {
+                    aimer.nudgeTurret(gamepad2.dpad_right ? TURRET_ALIGN_POWER : -TURRET_ALIGN_POWER);
+                } else {
+                    aimer.stopTurret();
+                }
+            } else if (aligningTurret) {
+                // Guide just released
+                aligningTurret = false;
+                aimer.stopTurret();
+                if (alignTimer.seconds() >= TURRET_ZERO_HOLD_TIME) {
+                    aimer.resetTurretEncoder();
+                    gamepad2.rumble(500); // tell driver 2 it took
+                }
+            } else if (gamepad2.dpad_left || gamepad2.dpad_right) {
                 aimer.moveTurret(gamepad2.dpad_right ? TURRET_NUDGE_POWER : -TURRET_NUDGE_POWER);
             } else if (gamepad2.y) {
                 aimer.aim();
@@ -127,10 +178,15 @@ public class TeleOpMain extends GreenBotBaseOpMode {
             /////////////////////////
             if (gamepad1.start || gamepad2.start) {
                 helpMenu();
+            } else if (aligningTurret) {
+                telemetry.addLine("TURRET ZERO: d-pad L/R until the turret faces straight forward,");
+                telemetry.addLine("then release Guide. (Soft limits are OFF - watch the wires.)");
+                telemetry.addData("Turret ticks", aimer.getTurretTicks());
             } else {
                 launcher.showStatus();
                 aimer.showStatus();
                 drive.showPose();
+                telemetry.addData("Drive speed", speedFactor);
             }
             telemetry.update();
         }
@@ -149,14 +205,16 @@ public class TeleOpMain extends GreenBotBaseOpMode {
         telemetry.addData("L Bumper", "Intake ON/OFF (Toggle)");
         telemetry.addData("R Bumper", "Intake Reverse (Toggle)");
         telemetry.addData("DPad Up/Down", "Wedge Up/Down");
+        telemetry.addData("DPad L/R", "Drive Speed -/+");
         telemetry.addData("", "");
 
         telemetry.addData("DRIVER 2", "Controls");
-        telemetry.addData("Y (Hold)", "Turret Auto-Aim (Hold)");
+        telemetry.addData("Y (Hold)", "Turret Auto-Aim");
         telemetry.addData("DPad L/R", "Turret L/R");
+        telemetry.addData("Guide (Hold)", "Turret zero: DPad L/R to face fwd, release");
         telemetry.addData("L Bumper", "Feeder SHOOT (Keep On)");
         telemetry.addData("R Bumper", "Feeder REVERSE (Keep On)");
         telemetry.addData("A", "Feeder OFF");
-        telemetry.addData("DPad Up/Down", "Launcher +/-50");
+        telemetry.addData("DPad Up/Down", "Launcher +/-10");
     }
 }
