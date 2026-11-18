@@ -34,10 +34,10 @@ public class Launcher {
     public static double SHOOT_VELOCITY = 1160;       // ticks/s
 
     // Velocity PIDF for the motor controller. Adjust these for spinup and recovery.
-    public static double KP = 40;
-    public static double KI = 2;
+    public static double KP = 210;
+    public static double KI = 0;
     public static double KD = 0;
-    public static double KF = 14.65;
+    public static double KF = 16;
 
     // ---------------- Hardware and state ----------------
     private final DcMotorEx motor;
