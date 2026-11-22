@@ -31,7 +31,7 @@ public class Launcher {
 
     // The velocity that scores. Calibration found 1160 works from every spot we tried; the window
     // is narrow (1140 falls short, 1180 goes long), so AT_SPEED_TOLERANCE has to stay well inside it.
-    public static double SHOOT_VELOCITY = 1160;       // ticks/s
+    public static double SHOOT_VELOCITY = 1140;       // ticks/s
 
     // Velocity PIDF for the motor controller. Adjust these for spinup and recovery.
     public static double KP = 210;
