@@ -19,7 +19,7 @@ public abstract class TeleOpMain extends GreenBotBaseOpMode {
     private final double INTAKE_POWER = 1.0;
     private final double FEEDER_POWER = 1.0;
 
-    private final double DEFAULT_SPEED_FACTOR = 0.6;
+    private final double DEFAULT_SPEED_FACTOR = 0.75;
     private final double SPEED_INCREMENT = 0.05;
     private final double MIN_SPEED_FACTOR = 0.2;   // lowest d-pad speed, so the robot can't get stuck at 0
     private final double MAX_SPEED_FACTOR = 1.0;

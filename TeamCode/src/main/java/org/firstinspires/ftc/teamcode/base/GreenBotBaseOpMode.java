@@ -29,9 +29,9 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
     protected Launcher launcher;
     protected IndicatorLight aimerLed, launcherLed;
 
-    protected double WEDGE_START = 0.7;
-    protected double WEDGE_UP = 0.65;
-    protected double WEDGE_DOWN = 0.25;
+    protected double WEDGE_START = 0.8;
+    protected double WEDGE_UP = 0.55;
+    protected double WEDGE_DOWN = 0.1;
 
     // Feeder pattern for shooting in auton (see shoot()): run, back up briefly, run again.
     protected static final long FEED_FIRST_MS = 2000;
