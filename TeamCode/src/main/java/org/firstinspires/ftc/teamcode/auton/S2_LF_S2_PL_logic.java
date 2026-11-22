@@ -20,7 +20,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Aimer.TURRET_AUTON_START_TICKS). Press INIT, pick the alliance, check that "Turret ticks" on
  * the Driver Station matches the start position.
  */
-@Autonomous(name = "S2-LF-S2-PL", group = "Auton")
+@Autonomous(name = "S2-LF-S2-PL-logic!", group = "Auton")
 public class S2_LF_S2_PL_logic extends GreenBotBaseOpMode implements Locations {
 
     static final double FAST_DRIVE_POWER = 1.0;
@@ -32,9 +32,11 @@ public class S2_LF_S2_PL_logic extends GreenBotBaseOpMode implements Locations {
     static final int SHOOT2_TURRET_TICKS = 0;
 
     static final double TURRET_TURN_TIMEOUT = 1.5; // seconds
-    static final double TIP_WAIT_TIMEOUT = 17.5;   // seconds to wait for the partner to tip the hive
+    static final double TIP_WAIT_TIMEOUT = 25.0;   // seconds to wait for the partner to tip the hive
     static final double AIM_TIMEOUT = 1.5;         // seconds
     static final double LAUNCHER_TIMEOUT = 2.0;    // seconds
+
+    static final double ENOUGH_TIME_TO_SHOOT = 20.0;
 
     @Override
     public void runOpMode() {
@@ -59,10 +61,10 @@ public class S2_LF_S2_PL_logic extends GreenBotBaseOpMode implements Locations {
                     aimer.getTurretTicks(), Aimer.TURRET_AUTON_START_TICKS);
             telemetry.update();
         }
+
         ElapsedTime timer = new ElapsedTime();
         waitForStart();
         timer.reset();
-
 
         wedgeServo.setPosition(WEDGE_UP);
         aimer.start();
@@ -75,41 +77,42 @@ public class S2_LF_S2_PL_logic extends GreenBotBaseOpMode implements Locations {
         // Swing the turret from its start position around toward the hive.
         turnTurretTo(SHOOT2_TURRET_TICKS, TURRET_TURN_TIMEOUT);
 
-        // We're counting on our partner to tip the hive, so wait up to TIP_WAIT_TIMEOUT for the
-        // aim. aimFor() returns as soon as it's aimed, so this only takes the full time if the
-        // hive never comes into view. Shoot either way.
-        aimFor(TIP_WAIT_TIMEOUT);
-        shoot(LAUNCHER_TIMEOUT);
+        boolean isAimed = aimFor(TIP_WAIT_TIMEOUT);
+        if (isAimed) {
 
-        // Harvest the left flower, intake running.
-        intake.setPower(INTAKE_POWER);
-        drive.driveTo(LEFT_FLOWER_START_X, LEFT_FLOWER_START_Y, LEFT_FLOWER_START_HEADING,
-                FAST_DRIVE_POWER);
-        drive.showPose();
-
-        wedgeServo.setPosition(WEDGE_DOWN); // wedge down while driving into the flower
-        drive.driveTo(LEFT_FLOWER_END_X, LEFT_FLOWER_END_Y, LEFT_FLOWER_END_HEADING,
-                SLOW_DRIVE_POWER);
-        drive.showPose();
-
-        sleep(1000);
-
-        drive.driveTo(LEFT_FLOWER_START_X, LEFT_FLOWER_START_Y, LEFT_FLOWER_START_HEADING,
-                FAST_DRIVE_POWER);
-        drive.showPose();
-        wedgeServo.setPosition(WEDGE_UP);
-        if (timer.seconds() > 25) {
-            drive.driveTo(PARK_LEFT_X, PARK_LEFT_Y, PARK_LEFT_HEADING, FAST_DRIVE_POWER);
-        }
-
-        // Back to SHOOT2. Keep the intake running on the way so balls finish coming in.
-        drive.driveTo(SHOOT2_X, SHOOT2_Y, SHOOT2_HEADING, FAST_DRIVE_POWER);
-        drive.showPose();
-        intake.setPower(0);
-
-        // Only shoot if we can aim at the hive (same as the S1 auton's second shot).
-        if (aimFor(AIM_TIMEOUT)) {
             shoot(LAUNCHER_TIMEOUT);
+
+            // if there's time, go get more pollen and shoot
+            if (timer.seconds() < ENOUGH_TIME_TO_SHOOT) {
+
+                // Harvest the left flower, intake running.
+                intake.setPower(INTAKE_POWER);
+                drive.driveTo(LEFT_FLOWER_START_X, LEFT_FLOWER_START_Y, LEFT_FLOWER_START_HEADING,
+                        FAST_DRIVE_POWER);
+                drive.showPose();
+
+                wedgeServo.setPosition(WEDGE_DOWN); // wedge down while driving into the flower
+                drive.driveTo(LEFT_FLOWER_END_X, LEFT_FLOWER_END_Y, LEFT_FLOWER_END_HEADING,
+                        SLOW_DRIVE_POWER);
+                drive.showPose();
+
+                sleep(1000);
+
+                drive.driveTo(LEFT_FLOWER_START_X, LEFT_FLOWER_START_Y, LEFT_FLOWER_START_HEADING,
+                        FAST_DRIVE_POWER);
+                drive.showPose();
+                wedgeServo.setPosition(WEDGE_UP);
+
+                // Back to SHOOT2. Keep the intake running on the way so balls finish coming in.
+                drive.driveTo(SHOOT2_X, SHOOT2_Y, SHOOT2_HEADING, FAST_DRIVE_POWER);
+                drive.showPose();
+                intake.setPower(0);
+
+                // Only shoot if we can aim at the hive (same as the S1 auton's second shot).
+                if (aimFor(AIM_TIMEOUT)) {
+                    shoot(LAUNCHER_TIMEOUT);
+                }
+            }
         }
 
         // park
