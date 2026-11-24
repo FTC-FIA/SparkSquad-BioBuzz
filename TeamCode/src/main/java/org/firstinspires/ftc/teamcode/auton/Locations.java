@@ -57,7 +57,7 @@ public interface Locations {
     public static final double LEFT_FLOWER_START_Y = -28.0;
     public static final double LEFT_FLOWER_START_HEADING = 180;
 
-    public static final double LEFT_FLOWER_END_X = -57.0;
+    public static final double LEFT_FLOWER_END_X = -58.0;
     public static final double LEFT_FLOWER_END_Y = -28;
     public static final double LEFT_FLOWER_END_HEADING = 180;
 

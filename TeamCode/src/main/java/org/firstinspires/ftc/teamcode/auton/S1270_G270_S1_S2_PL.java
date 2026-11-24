@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.robot.Launcher;
  * Aimer.TURRET_AUTON_START_TICKS). Press INIT, pick the alliance, check that "Turret ticks" on
  * the Driver Station matches the start position.
  */
-@Autonomous(name = "S1270_G270_S1_S2_PL", group = "Auton")
+@Autonomous(name = "Auton 2: S1270_G270_S1_S2_PL", group = "Auton")
 public class S1270_G270_S1_S2_PL extends GreenBotBaseOpMode implements Locations {
 
     static final double FAST_DRIVE_POWER = 1.0;
@@ -61,9 +61,8 @@ public class S1270_G270_S1_S2_PL extends GreenBotBaseOpMode implements Locations
 
         launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY);
 
-        // Swing the turret from its start position (90 degrees to the side) around toward the
-        // hive so the Limelight can see it, then fine-tune with auto-aim.
-        turnTurretTo(SHOOT1_TURRET_TICKS, TURRET_TURN_TIMEOUT);
+        // REMOVED for sideways start
+        // turnTurretTo(SHOOT1_TURRET_TICKS, TURRET_TURN_TIMEOUT);
 
         // Shoot even if aiming fails: the turret is probably close enough.
         aimFor(AIM_TIMEOUT);
