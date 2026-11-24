@@ -7,10 +7,15 @@ public interface Locations {
     public static final double START1_Y = -18;
     public static final double START1_HEADING = 180;
 
+    public static final double START1_270_X = 63;
+    public static final double START1_270_Y = -13;
+    public static final double START1_270_HEADING = 270;
+
     // Start 2: S2 autons (x, y from Auton2)
     public static final double START2_X = -63.5;
     public static final double START2_Y = -16;
     public static final double START2_HEADING = 0;
+
 
     public static final double SHOOT1_X = 57.3; // 2" off the wall so the shooter doesn't rub
     public static final double SHOOT1_Y = -18;
@@ -23,6 +28,22 @@ public interface Locations {
     public static final double GARDEN_END_X = 60;
     public static final double GARDEN_END_Y = -64.6;
     public static final double GARDEN_END_HEADING = 0;
+
+    public static final double GARDEN_START_X_270 = 62.3;
+    public static final double GARDEN_START_Y_270 = -47.4;
+    public static final double GARDEN_START_HEADING_270 = -90;
+
+    public static final double GARDEN_END_X_270 = 62.3;
+    public static final double GARDEN_END_Y_270 = -61.7;
+    public static final double GARDEN_END_HEADING_270 = -90;
+
+    public static final double PASS_START_X = 57;
+    public static final double PASS_START_Y = -60.5;
+    public static final double PASS_START_HEADING = 0;
+
+    public static final double PASS_END_X = -30;
+    public static final double PASS_END_Y = -10.5;
+    public static final double PASS_END_HEADING = 0;
 
     public static final double WAYPOINT1_X = -14.0;
     public static final double WAYPOINT1_Y = -37.0;
