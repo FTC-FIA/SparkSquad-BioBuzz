@@ -34,9 +34,8 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
     protected double WEDGE_DOWN = 0.1;
 
     // Feeder pattern for shooting in auton (see shoot()): run, back up briefly, run again.
-    protected static final long FEED_FIRST_MS = 2000;
-    protected static final long FEED_REVERSE_MS = 500;
-    protected static final long FEED_SECOND_MS = 2000;
+    protected static final long FEED_PULSE_MS = 500;
+    protected static final int NUM_FEED_PULSES = 5;
 
     /**
      * Configures the hardware that all OpModes using this robot share.
@@ -186,17 +185,16 @@ public abstract class GreenBotBaseOpMode extends LinearOpMode {
     }
 
     /**
-     * For autons: wait for the launcher to get up to speed, then shoot: run the feeder for
-     * FEED_FIRST_MS, reverse it for FEED_REVERSE_MS, then run it again for FEED_SECOND_MS.
-     * Start the launcher first with launcher.setTargetVelocity(Launcher.SHOOT_VELOCITY).
-     * The launcher's velocity stays on telemetry the whole time, so you can watch it drop and
-     * recover as each ball goes through.
+     * For autons: wait for the launcher to get up to speed, then shoot: pulse the feeder
+     * forwards and backwards NUM_FEED_PULSES times with pulses of FEED_PULSE_MS milliseconds
      */
     protected void shoot(double launcherTimeoutSeconds) {
         waitForLauncher(launcherTimeoutSeconds);
-        runFeeder(1.0, FEED_FIRST_MS);     // shoot
-        runFeeder(-1.0, FEED_REVERSE_MS);  // back up
-        runFeeder(1.0, FEED_SECOND_MS);    // shoot the rest
+        for (int i = 0; i < NUM_FEED_PULSES - 1; i++) {
+            runFeeder(1.0, FEED_PULSE_MS);
+            runFeeder(-1.0, FEED_PULSE_MS);
+        }
+        runFeeder(1.0, FEED_PULSE_MS);
         feeder.setPower(0);                // feeder off
     }
 

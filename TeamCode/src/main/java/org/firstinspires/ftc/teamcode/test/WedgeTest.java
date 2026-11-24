@@ -28,7 +28,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.base.GreenBotBaseOpMode;
 
 @TeleOp(name = "Servo Test", group = "Test")
-public class ServoTest extends GreenBotBaseOpMode {
+public class WedgeTest extends GreenBotBaseOpMode {
 
     private static final double DRIVE_POWER = 0.2;
 
