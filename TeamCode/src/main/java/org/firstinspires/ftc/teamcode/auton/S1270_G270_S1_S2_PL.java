@@ -84,34 +84,41 @@ public class S1270_G270_S1_S2_PL extends GreenBotBaseOpMode implements Locations
 
         if (aimFor(0.5)) {
             shoot(LAUNCHER_TIMEOUT);
-        }
-        else {
+
             drive.driveTo(PASS_START_X, PASS_START_Y, PASS_START_HEADING, FAST_DRIVE_POWER, 0.5, 3.0 );
             drive.showPose();
 
-            drive.driveTo(PASS_START_X, PASS_START_Y, PASS_START_HEADING, FAST_DRIVE_POWER, 0.5, 3.0 );
+            drive.driveTo(PASS_END_X, PASS_END_Y, PASS_END_HEADING, FAST_DRIVE_POWER, 0.5, 3.0 );
             drive.showPose();
 
             drive.driveTo(SHOOT2_X, SHOOT2_Y, SHOOT2_HEADING, FAST_DRIVE_POWER, 0.5, 3.0 );
             drive.showPose();
 
-            shoot(LAUNCHER_TIMEOUT);
+            //shoot(LAUNCHER_TIMEOUT);
+
+            drive.driveTo(PARK_LEFT_X, PARK_LEFT_Y, PARK_LEFT_HEADING, FAST_DRIVE_POWER, 0.5, 3.0 );
+            drive.showPose();
+
+        } else { // drive to the other side and shoot
+            drive.driveTo(PASS_START_X, PASS_START_Y, PASS_START_HEADING, FAST_DRIVE_POWER, 0.5, 3.0 );
+            drive.showPose();
+
+            drive.driveTo(PASS_END_X, PASS_END_Y, PASS_END_HEADING, FAST_DRIVE_POWER, 0.5, 3.0 );
+            drive.showPose();
+
+            drive.driveTo(SHOOT2_X, SHOOT2_Y, SHOOT2_HEADING, FAST_DRIVE_POWER, 0.5, 3.0 );
+            turnTurretTo(0, TURRET_TURN_TIMEOUT);
+            drive.showPose();
+
+            if (aimFor(AIM_TIMEOUT)) {
+                shoot(LAUNCHER_TIMEOUT);
+            }
 
             drive.driveTo(PARK_LEFT_X, PARK_LEFT_Y, PARK_LEFT_HEADING, FAST_DRIVE_POWER, 0.5, 3.0 );
             drive.showPose();
         }
 
-        // Keep the intake running on the way so balls finish coming in.
-        drive.driveTo(SHOOT2_X, SHOOT2_Y, SHOOT2_HEADING, FAST_DRIVE_POWER, 0.8, 8.0);
-        drive.showPose();
         intake.setPower(0);
-
-        // Only shoot if we can aim at the hive. If we missed shot 1 the hive won't tip, so
-        // there's no point waiting longer than AIM_TIMEOUT; if it did tip, it should be done
-        // by the time we get back from the garden.
-        if (aimFor(AIM_TIMEOUT)) {
-            shoot(LAUNCHER_TIMEOUT);
-        }
 
         // park
         drive.driveTo(PARK_LEFT_X, PARK_LEFT_Y, PARK_LEFT_HEADING, FAST_DRIVE_POWER);

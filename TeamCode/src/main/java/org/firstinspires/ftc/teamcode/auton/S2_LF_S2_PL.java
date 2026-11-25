@@ -35,7 +35,7 @@ public class S2_LF_S2_PL extends GreenBotBaseOpMode implements Locations {
     static final double AIM_TIMEOUT = 1.5;         // seconds
     static final double LAUNCHER_TIMEOUT = 2.0;    // seconds
 
-    static final double ENOUGH_TIME_TO_SHOOT = 15.0;
+    static final double ENOUGH_TIME_TO_SHOOT = 20.0;
 
     @Override
     public void runOpMode() {

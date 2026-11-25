@@ -16,7 +16,6 @@ public interface Locations {
     public static final double START2_Y = -16;
     public static final double START2_HEADING = 0;
 
-
     public static final double SHOOT1_X = 57.3; // 2" off the wall so the shooter doesn't rub
     public static final double SHOOT1_Y = -18;
     public static final double SHOOT1_HEADING = 180;
@@ -38,7 +37,7 @@ public interface Locations {
     public static final double GARDEN_END_HEADING_270 = -90;
 
     public static final double PASS_START_X = 57;
-    public static final double PASS_START_Y = -60.5;
+    public static final double PASS_START_Y = -10.5;
     public static final double PASS_START_HEADING = 0;
 
     public static final double PASS_END_X = -30;
